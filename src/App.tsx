@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -23,9 +23,10 @@ const MODEL_SIZES_GB: { [key: string]: number } = {
   "model-gemma-2b": 3.2,
 };
 
-
 function App() {
-  const [selectedModelId, setSelectedModelId] = useState<string | undefined>(undefined);
+  const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
+    undefined,
+  );
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [estimatedTimeLeft, setEstimatedTimeLeft] = useState(0);
@@ -47,10 +48,12 @@ function App() {
         elapsedSeconds += 0.1;
         const currentProgress = Math.min(
           (elapsedSeconds / totalDownloadTimeSeconds) * 100,
-          100
+          100,
         );
         setDownloadProgress(currentProgress);
-        setEstimatedTimeLeft(Math.max(0, Math.ceil(totalDownloadTimeSeconds - elapsedSeconds)));
+        setEstimatedTimeLeft(
+          Math.max(0, Math.ceil(totalDownloadTimeSeconds - elapsedSeconds)),
+        );
 
         if (currentProgress >= 100) {
           setIsDownloading(false);
@@ -74,7 +77,9 @@ function App() {
     setEstimatedTimeLeft(0);
   };
 
-  const selectedModelDetails = AVAILABLE_MODELS.find(m => m.id === selectedModelId);
+  const selectedModelDetails = AVAILABLE_MODELS.find(
+    (m) => m.id === selectedModelId,
+  );
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-4 space-y-8">
@@ -89,7 +94,10 @@ function App() {
 
       <main className="w-full max-w-md p-6 bg-gray-800 rounded-xl shadow-2xl space-y-6">
         <div className="space-y-2">
-          <label htmlFor="model-select" className="block text-sm font-medium text-gray-300">
+          <label
+            htmlFor="model-select"
+            className="block text-sm font-medium text-gray-300"
+          >
             Choose a Model:
           </label>
           <Select
@@ -97,12 +105,19 @@ function App() {
             onValueChange={handleModelSelect}
             disabled={isDownloading}
           >
-            <SelectTrigger id="model-select" className="w-full bg-gray-700 border-gray-600 text-white focus:ring-pink-500 focus:border-pink-500">
+            <SelectTrigger
+              id="model-select"
+              className="w-full bg-gray-700 border-gray-600 text-white focus:ring-pink-500 focus:border-pink-500"
+            >
               <SelectValue placeholder="Select a model to download" />
             </SelectTrigger>
             <SelectContent className="bg-gray-700 border-gray-600 text-white">
               {AVAILABLE_MODELS.map((model) => (
-                <SelectItem key={model.id} value={model.id} className="hover:bg-gray-600 focus:bg-pink-600">
+                <SelectItem
+                  key={model.id}
+                  value={model.id}
+                  className="hover:bg-gray-600 focus:bg-pink-600"
+                >
                   {model.name}
                 </SelectItem>
               ))}
@@ -122,7 +137,10 @@ function App() {
 
             {isDownloading && (
               <div className="space-y-2">
-                <Progress value={downloadProgress} className="w-full [&>div]:bg-pink-500 bg-gray-700" />
+                <Progress
+                  value={downloadProgress}
+                  className="w-full [&>div]:bg-pink-500 bg-gray-700"
+                />
                 <p className="text-xs text-gray-400 text-center">
                   {downloadProgress < 100
                     ? `Estimated time left: ${estimatedTimeLeft}s`
@@ -131,16 +149,19 @@ function App() {
               </div>
             )}
             {!isDownloading && downloadProgress === 100 && (
-                 <p className="text-sm text-green-400 text-center">
-                    Model successfully downloaded and ready to use.
-                 </p>
+              <p className="text-sm text-green-400 text-center">
+                Model successfully downloaded and ready to use.
+              </p>
             )}
           </div>
         )}
       </main>
 
       <footer className="text-center text-gray-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} Browser LLM Project. Powered by WebAssembly.</p>
+        <p>
+          &copy; {new Date().getFullYear()} Browser LLM Project. Powered by
+          WebAssembly.
+        </p>
       </footer>
     </div>
   );

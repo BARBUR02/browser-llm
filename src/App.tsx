@@ -9,10 +9,10 @@ import {
 import { Progress } from "@/components/ui/progress";
 
 const AVAILABLE_MODELS = [
-  { id: "model-phi-2", name: "Phi-2 (Small, ~2.7GB)" },
-  { id: "model-llama2-7b", name: "Llama2 7B (Medium, ~7GB)" },
-  { id: "model-mistral-7b", name: "Mistral 7B (Medium, ~7GB)" },
-  { id: "model-gemma-2b", name: "Gemma 2B (Small, ~2.5GB)" },
+  { id: "model-phi-2", name: "Phi-2 (Small, ~2.1GB)" },
+  { id: "model-llama2-7b", name: "Llama2 7B (Medium, ~1.1GB)" },
+  { id: "model-mistral-7b", name: "Mistral 7B (Medium, ~0.8GB)" },
+  { id: "model-gemma-2b", name: "Gemma 2B (Small, ~3.2GB)" },
 ];
 
 const DOWNLOAD_SPEED_MBps = 40;

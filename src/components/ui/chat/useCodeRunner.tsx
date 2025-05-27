@@ -5,7 +5,7 @@ export const useCodeRunner = () => {
 
   const [result, setResult] = useState<string>();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   // init worker and start listening to messages
   useEffect(() => {
@@ -18,8 +18,8 @@ export const useCodeRunner = () => {
       if (e.data.type === "success") {
         setResult(e.data.result);
       } else {
-        setResult("Error: " + e.data.error);
-        setError(true);
+        setResult(undefined);
+        setError(e.data.error);
       }
     };
 
@@ -29,7 +29,7 @@ export const useCodeRunner = () => {
   const runPython = (code: string) => {
     if (workerRef.current) {
       setLoading(true);
-      setError(false);
+      setError(undefined);
       setResult(undefined);
       workerRef.current.postMessage(code);
     }

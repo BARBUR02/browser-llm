@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useCodeRunner } from "./useCodeRunner";
 import { Button } from "../Button";
 
-const EXAMPLE_CODE = `import time
+const PRIMES_CODE = `import time
 
 def is_prime(n):
     if n < 2:
@@ -22,6 +22,18 @@ while count < 10:
         count += 1
     num += 1`;
 
+// to install packages micropip is necessary
+const NUMPY_CODE = `import micropip
+await micropip.install("numpy")
+
+import numpy as np
+
+a = np.array([1, 2, 3, 4, 5])
+b = a ** 2
+
+for x, y in zip(a, b):
+    print(f"{x} squared is {y}")`;
+
 const PythonRunner = () => {
   const [code, setCode] = useState<string | undefined>(undefined);
   const { runPython, output, loading, error } = useCodeRunner();
@@ -32,15 +44,9 @@ const PythonRunner = () => {
     }
   }, [code, runPython]);
 
-  const onExampleClick = () => setCode(EXAMPLE_CODE);
-
   const outputString = useMemo(() => {
-    if (error) {
-      return "An error occured :(";
-    }
-    if (loading) {
-      return "Loading...";
-    }
+    if (error) return "An error occurred.";
+    if (loading) return "Loading...";
     return output ?? "Result will appear here...";
   }, [error, loading, output]);
 
@@ -50,11 +56,23 @@ const PythonRunner = () => {
         <h2 className="text-2xl font-bold text-pink-500">Python Runner</h2>
         <div className="flex gap-3">
           <Button
-            onPress={onExampleClick}
-            text={"Example Code"}
+            onPress={() => setCode(PRIMES_CODE)}
+            text="Primes"
             disabled={loading}
+            type="secondary"
           />
-          <Button onPress={onRunClick} text={"Run"} disabled={loading} />
+          <Button
+            onPress={() => setCode(NUMPY_CODE)}
+            text="Numpy"
+            disabled={loading}
+            type="secondary"
+          />
+          <Button
+            onPress={onRunClick}
+            text="Run"
+            disabled={loading}
+            type="primary"
+          />
         </div>
       </div>
 
@@ -66,7 +84,7 @@ const PythonRunner = () => {
         className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-sm font-mono focus:ring-2 focus:ring-pink-500"
       />
 
-      <div className="bg-black border border-pink-500 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap h-[120px] overflow-y-auto">
+      <div className="bg-black border border-pink-500 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap h-[120px] overflow-y-auto scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-gray-700">
         {outputString}
       </div>
     </div>

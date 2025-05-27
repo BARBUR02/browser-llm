@@ -1,56 +1,39 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
-
-const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/";
-
-async function loadPyodideAndPackages() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pyodide = await (window as any).loadPyodide({
-    indexURL: PYODIDE_URL,
-  });
-
-  await pyodide.loadPackage(["micropip"]);
-  return pyodide;
-}
+import { useEffect, useRef, useState } from "react";
 
 export const useCodeRunner = () => {
-  const [pyodide, setPyodide] = useState<any>(null);
+  const workerRef = useRef<Worker | null>(null);
 
-  const [output, setOutput] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<boolean>(false);
+  const [result, setResult] = useState<string>();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
-  // assumption that useCodeRunner will be called onced inside chat
+  // init worker and start listening to messages
   useEffect(() => {
-    loadPyodideAndPackages()
-      .then(setPyodide)
-      .catch(() => console.log("loading failed"));
-  }, []);
+    const worker = new Worker("/worker.js");
+    workerRef.current = worker;
 
-  const runPython = async (code: string) => {
-    if (pyodide) {
-      setLoading(true);
-      setError(false);
+    worker.onmessage = (e) => {
+      setLoading(false);
 
-      try {
-        pyodide.runPython(`
-          import sys
-          from io import StringIO
-          sys.stdout = StringIO()
-          sys.stderr = sys.stdout
-          `);
-
-        pyodide.runPython(code);
-        const result = pyodide.runPython("sys.stdout.getvalue()");
-        setOutput(result ?? undefined);
-      } catch (err: any) {
-        setOutput(`Error: ${err.message}`);
+      if (e.data.type === "success") {
+        setResult(e.data.result);
+      } else {
+        setResult("Error: " + e.data.error);
         setError(true);
       }
+    };
 
-      setLoading(false);
+    return () => worker.terminate();
+  }, []);
+
+  const runPython = (code: string) => {
+    if (workerRef.current) {
+      setLoading(true);
+      setError(false);
+      setResult(undefined);
+      workerRef.current.postMessage(code);
     }
   };
 
-  return { runPython, output, loading, error };
+  return { runPython, output: result, loading, error };
 };

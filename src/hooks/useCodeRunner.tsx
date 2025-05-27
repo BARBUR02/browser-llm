@@ -35,5 +35,5 @@ export const useCodeRunner = () => {
     }
   };
 
-  return { runPython, output: result, loading, error };
+  return { runPython, result, loading, error };
 };

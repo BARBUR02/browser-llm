@@ -36,7 +36,7 @@ for x, y in zip(a, b):
 
 const CodeSection = () => {
   const [code, setCode] = useState<string | undefined>(undefined);
-  const { runPython, output, loading, error } = useCodeRunner();
+  const { runPython, result, loading, error } = useCodeRunner();
 
   const onRunClick = useCallback(() => {
     if (code) {
@@ -47,8 +47,8 @@ const CodeSection = () => {
   const outputString = useMemo(() => {
     if (error) return "An error occurred.";
     if (loading) return "Loading...";
-    return output ?? "Result will appear here...";
-  }, [error, loading, output]);
+    return result ?? "Result will appear here...";
+  }, [error, loading, result]);
 
   return (
     <div className="w-full max-w-2xl bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">

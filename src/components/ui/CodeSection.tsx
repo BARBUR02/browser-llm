@@ -34,7 +34,7 @@ b = a ** 2
 for x, y in zip(a, b):
     print(f"{x} squared is {y}")`;
 
-const CodeSection = () => {
+export const CodeSection = () => {
   const [code, setCode] = useState<string | undefined>(undefined);
   const { runPython, result, loading, error } = useCodeRunner();
 
@@ -90,5 +90,3 @@ const CodeSection = () => {
     </div>
   );
 };
-
-export default CodeSection;

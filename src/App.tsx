@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import Chat from "./components/ui/CodeSection";
+import { CodeSection } from "./components/ui/CodeSection";
 
 const AVAILABLE_MODELS = [
   { id: "model-phi-2", name: "Phi-2 (Small, ~2.1GB)" },
@@ -160,7 +160,7 @@ function App() {
         </main>
 
         <div className="w-full md:w-1/2">
-          <Chat />
+          <CodeSection />
         </div>
       </div>
 

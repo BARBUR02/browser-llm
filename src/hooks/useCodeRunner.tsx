@@ -13,14 +13,14 @@ export const useCodeRunner = () => {
     workerRef.current = worker;
 
     worker.onmessage = (e) => {
-      setLoading(false);
-
       if (e.data.type === "success") {
         setResult(e.data.result);
       } else {
         setResult(undefined);
         setError(e.data.error);
       }
+
+      setLoading(false);
     };
 
     return () => worker.terminate();

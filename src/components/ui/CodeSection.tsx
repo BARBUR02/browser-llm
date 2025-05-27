@@ -45,7 +45,7 @@ export const CodeSection = () => {
   }, [code, runPython]);
 
   const outputString = useMemo(() => {
-    if (error) return "An error occurred.";
+    if (error) return error;
     if (loading) return "Loading...";
     return result ?? "Result will appear here...";
   }, [error, loading, result]);

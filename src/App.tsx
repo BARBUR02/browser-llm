@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import Chat from "./components/ui/chat/Chat";
+import Chat from "./components/ui/CodeSection";
 
 const AVAILABLE_MODELS = [
   { id: "model-phi-2", name: "Phi-2 (Small, ~2.1GB)" },
@@ -26,7 +26,7 @@ const MODEL_SIZES_GB: { [key: string]: number } = {
 
 function App() {
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
-    undefined,
+    undefined
   );
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -49,11 +49,11 @@ function App() {
         elapsedSeconds += 0.1;
         const currentProgress = Math.min(
           (elapsedSeconds / totalDownloadTimeSeconds) * 100,
-          100,
+          100
         );
         setDownloadProgress(currentProgress);
         setEstimatedTimeLeft(
-          Math.max(0, Math.ceil(totalDownloadTimeSeconds - elapsedSeconds)),
+          Math.max(0, Math.ceil(totalDownloadTimeSeconds - elapsedSeconds))
         );
 
         if (currentProgress >= 100) {
@@ -79,7 +79,7 @@ function App() {
   };
 
   const selectedModelDetails = AVAILABLE_MODELS.find(
-    (m) => m.id === selectedModelId,
+    (m) => m.id === selectedModelId
   );
 
   return (

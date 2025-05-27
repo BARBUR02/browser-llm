@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import { useCodeRunner } from "./useCodeRunner";
-import { Button } from "../Button";
+import { useCodeRunner } from "../../hooks/useCodeRunner";
+import { Button } from "./Button";
 
 const PRIMES_CODE = `import time
 
@@ -34,7 +34,7 @@ b = a ** 2
 for x, y in zip(a, b):
     print(f"{x} squared is {y}")`;
 
-const PythonRunner = () => {
+const CodeSection = () => {
   const [code, setCode] = useState<string | undefined>(undefined);
   const { runPython, output, loading, error } = useCodeRunner();
 
@@ -84,11 +84,11 @@ const PythonRunner = () => {
         className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-sm font-mono focus:ring-2 focus:ring-pink-500"
       />
 
-      <div className="bg-black border border-pink-500 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap h-[120px] overflow-y-auto scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-gray-700">
+      <div className="bg-black border border-pink-500 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap h-[120px] overflow-y-auto">
         {outputString}
       </div>
     </div>
   );
 };
 
-export default PythonRunner;
+export default CodeSection;

@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { CodeSection } from "./components/ui/CodeSection";
 
 const AVAILABLE_MODELS = [
   { id: "model-phi-2", name: "Phi-2 (Small, ~2.1GB)" },
@@ -92,70 +93,76 @@ function App() {
         </p>
       </header>
 
-      <main className="w-full max-w-md p-6 bg-gray-800 rounded-xl shadow-2xl space-y-6">
-        <div className="space-y-2">
-          <label
-            htmlFor="model-select"
-            className="block text-sm font-medium text-gray-300"
-          >
-            Choose a Model:
-          </label>
-          <Select
-            value={selectedModelId}
-            onValueChange={handleModelSelect}
-            disabled={isDownloading}
-          >
-            <SelectTrigger
-              id="model-select"
-              className="w-full bg-gray-700 border-gray-600 text-white focus:ring-pink-500 focus:border-pink-500"
+      <div className="flex flex-col md:flex-row gap-6 w-full max-w-6xl items-start justify-center">
+        <main className="w-full md:w-1/2 p-6 bg-gray-800 rounded-xl shadow-2xl space-y-6">
+          <div className="space-y-2">
+            <label
+              htmlFor="model-select"
+              className="block text-sm font-medium text-gray-300"
             >
-              <SelectValue placeholder="Select a model to download" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-700 border-gray-600 text-white">
-              {AVAILABLE_MODELS.map((model) => (
-                <SelectItem
-                  key={model.id}
-                  value={model.id}
-                  className="hover:bg-gray-600 focus:bg-pink-600"
-                >
-                  {model.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+              Choose a Model:
+            </label>
+            <Select
+              value={selectedModelId}
+              onValueChange={handleModelSelect}
+              disabled={isDownloading}
+            >
+              <SelectTrigger
+                id="model-select"
+                className="w-full bg-gray-700 border-gray-600 text-white focus:ring-pink-500 focus:border-pink-500"
+              >
+                <SelectValue placeholder="Select a model to download" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-700 border-gray-600 text-white">
+                {AVAILABLE_MODELS.map((model) => (
+                  <SelectItem
+                    key={model.id}
+                    value={model.id}
+                    className="hover:bg-gray-600 focus:bg-pink-600"
+                  >
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {selectedModelId && (
-          <div className="space-y-3">
-            <div className="text-center">
-              <p className="text-lg font-semibold">
-                {isDownloading
-                  ? `Downloading: ${selectedModelDetails?.name}`
-                  : `${selectedModelDetails?.name} ready!`}
-              </p>
-            </div>
-
-            {isDownloading && (
-              <div className="space-y-2">
-                <Progress
-                  value={downloadProgress}
-                  className="w-full [&>div]:bg-pink-500 bg-gray-700"
-                />
-                <p className="text-xs text-gray-400 text-center">
-                  {downloadProgress < 100
-                    ? `Estimated time left: ${estimatedTimeLeft}s`
-                    : "Download complete!"}
+          {selectedModelId && (
+            <div className="space-y-3">
+              <div className="text-center">
+                <p className="text-lg font-semibold">
+                  {isDownloading
+                    ? `Downloading: ${selectedModelDetails?.name}`
+                    : `${selectedModelDetails?.name} ready!`}
                 </p>
               </div>
-            )}
-            {!isDownloading && downloadProgress === 100 && (
-              <p className="text-sm text-green-400 text-center">
-                Model successfully downloaded and ready to use.
-              </p>
-            )}
-          </div>
-        )}
-      </main>
+
+              {isDownloading && (
+                <div className="space-y-2">
+                  <Progress
+                    value={downloadProgress}
+                    className="w-full [&>div]:bg-pink-500 bg-gray-700"
+                  />
+                  <p className="text-xs text-gray-400 text-center">
+                    {downloadProgress < 100
+                      ? `Estimated time left: ${estimatedTimeLeft}s`
+                      : "Download complete!"}
+                  </p>
+                </div>
+              )}
+              {!isDownloading && downloadProgress === 100 && (
+                <p className="text-sm text-green-400 text-center">
+                  Model successfully downloaded and ready to use.
+                </p>
+              )}
+            </div>
+          )}
+        </main>
+
+        <div className="w-full md:w-1/2">
+          <CodeSection />
+        </div>
+      </div>
 
       <footer className="text-center text-gray-500 text-sm">
         <p>

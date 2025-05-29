@@ -9,7 +9,7 @@ export const useCodeRunner = () => {
 
   // init worker and start listening to messages
   useEffect(() => {
-    const worker = new Worker("/worker.js");
+    const worker = new Worker(`${import.meta.env.BASE_URL}worker.js`);
     workerRef.current = worker;
 
     worker.onmessage = (e) => {

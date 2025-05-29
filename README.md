@@ -4,6 +4,15 @@ Browser-Based Chat with Client-Side LLMs (WASM-Powered).
 
 This project aims to create a chat application that runs Large Language Models (LLMs) directly in the user's browser using WebAssembly (WASM). This allows for private, client-side AI interactions without needing server-side GPU resources for inference.
 
+---
+
+## 🚀 Live Demo
+
+You can try the latest deployed version here:  
+[https://barbur02.github.io/browser-llm/](https://barbur02.github.io/browser-llm/)
+
+---
+
 ## Project Setup
 
 ### Requirements

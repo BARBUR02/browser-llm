@@ -19,14 +19,14 @@ self.onmessage = async (event) => {
   // init worker environment
   if (!pyodideReadyPromise) {
     importScripts(PYODIDE_SCRIPT_URL);
-    pyodideReadyPromise = loadPyodide({ indexURL: PYODIDE_INDEX_URL });
+    pyodideReadyPromise = (async () => {
+      const pyodide = await loadPyodide({ indexURL: PYODIDE_INDEX_URL });
+      await pyodide.loadPackage(["micropip"]); // Load micropip during initialization
+      return pyodide;
+    })();
   }
 
   const pyodide = await pyodideReadyPromise;
-
-  // needed for installing packages
-  await pyodide.loadPackage(["micropip"]);
-
   try {
     await pyodide.runPythonAsync(PYTHON_STDOUT_SETUP);
     await pyodide.runPythonAsync(code);

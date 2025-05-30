@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -8,74 +8,230 @@ import {
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { CodeSection } from "./components/ui/CodeSection";
+import { Button } from "./components/ui/Button";
+import { useLLMEngine } from "./hooks/useLLMEngine";
 
+// list of available models: https://github.com/mlc-ai/web-llm/blob/d8b25fed8e81d6f6b27cdc07e839c1c09cfaa43d/src/config.ts#L330
 const AVAILABLE_MODELS = [
-  { id: "model-phi-2", name: "Phi-2 (Small, ~2.1GB)" },
-  { id: "model-llama2-7b", name: "Llama2 7B (Medium, ~1.1GB)" },
-  { id: "model-mistral-7b", name: "Mistral 7B (Medium, ~0.8GB)" },
-  { id: "model-gemma-2b", name: "Gemma 2B (Small, ~3.2GB)" },
+  {
+    id: "Llama-3.2-1B-Instruct-q4f32_1-MLC",
+    name: "Llama 3.2 1B  - Small - Q4 / FP32 - 1.1GB",
+    sizeGB: 1.1,
+  },
+  {
+    id: "Llama-3.2-1B-Instruct-q0f16-MLC",
+    name: "Llama 3.2 1B  - Medium - Full / FP16 - 2.5GB",
+    sizeGB: 2.5,
+  },
+  {
+    id: "Llama-3.2-1B-Instruct-q0f32-MLC",
+    name: "Llama 3.2 1B  - Large - Full / FP32 - 5.1GB",
+    sizeGB: 5.1,
+  },
+  {
+    id: "Mistral-7B-Instruct-v0.3-q4f16_1-MLC",
+    name: "Mistral 7B - Medium - Q4 / FP16 - 4GB",
+    sizeGB: 5.5,
+  },
 ];
 
-const DOWNLOAD_SPEED_MBps = 40;
-const MODEL_SIZES_GB: { [key: string]: number } = {
-  "model-phi-2": 2.1,
-  "model-llama2-7b": 1.1,
-  "model-mistral-7b": 0.8,
-  "model-gemma-2b": 3.2,
+interface LLMCodeGeneratorProps {
+  onCodeGenerated: (code: string) => void;
+  onLlmStateChange: (
+    response: string,
+    loading: boolean,
+    ready: boolean,
+  ) => void;
+  selectedModelId: string | undefined;
+}
+
+const LLMCodeGenerator = ({
+  onCodeGenerated,
+  onLlmStateChange,
+  selectedModelId,
+}: LLMCodeGeneratorProps) => {
+  const [prompt, setPrompt] = useState<string>("");
+
+  const {
+    isLoading: llmInitLoading,
+    loadingProgress,
+    error: llmError,
+    isReady: llmReady,
+    generateResponse,
+    initializeEngine,
+  } = useLLMEngine(selectedModelId);
+
+  useEffect(() => {
+    onLlmStateChange("", false, llmReady);
+  }, [llmReady, onLlmStateChange]);
+
+  const onGenerateFromPrompt = useCallback(async () => {
+    if (!prompt.trim() || !llmReady) return;
+
+    onLlmStateChange("", true, llmReady);
+
+    try {
+      const fullPrompt = `Generate Python code for the following request: "${prompt.trim()}". 
+            
+Please provide clean, executable Python code with comments. Include any necessary imports. 
+If the request involves data processing, use basic Python libraries.
+Format your response with the code in a code block, provide only the code as your response.`;
+
+      const response = await generateResponse(fullPrompt);
+      onLlmStateChange(response, false, llmReady);
+
+      const codeMatch =
+        response.match(/```python\n([\s\S]*?)\n```/) ||
+        response.match(/```\n([\s\S]*?)\n```/);
+
+      if (codeMatch) {
+        onCodeGenerated(codeMatch[1].trim());
+      } else {
+        const lines = response.split("\n");
+        const codeLines = lines.filter(
+          (line) =>
+            !line.toLowerCase().includes("here") &&
+            !line.toLowerCase().includes("this code") &&
+            line.trim() !== "",
+        );
+        if (codeLines.length > 0) {
+          onCodeGenerated(codeLines.join("\n"));
+        }
+      }
+    } catch (err) {
+      const errorMsg = `Error: ${err instanceof Error ? err.message : "Failed to generate code"}`;
+      onLlmStateChange(errorMsg, false, llmReady);
+    }
+  }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
+
+  return (
+    <div className="w-full bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">
+      <h2 className="text-2xl font-bold text-green-500">AI Code Generator</h2>
+
+      <div className="space-y-3">
+        {selectedModelId && !llmReady && (
+          <Button
+            onPress={initializeEngine}
+            text="Initialize LLM"
+            disabled={llmInitLoading}
+            type="primary"
+          />
+        )}
+
+        {llmInitLoading && (
+          <div className="space-y-2">
+            <div className="text-center text-green-400">
+              Loading LLM... {loadingProgress}%
+            </div>
+            {loadingProgress > 0 && (
+              <Progress
+                value={loadingProgress}
+                className="w-full [&>div]:bg-green-500 bg-gray-700"
+              />
+            )}
+          </div>
+        )}
+
+        {!selectedModelId && (
+          <div className="text-center text-gray-400">
+            Please select a model above to get started
+          </div>
+        )}
+
+        {llmReady && (
+          <div className="flex gap-3 items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-green-400 mb-2">
+                Code Generation Prompt
+              </label>
+              <input
+                type="text"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="e.g., 'Create a function to sort a list of numbers'"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-sm focus:ring-2 focus:ring-green-500"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    onGenerateFromPrompt();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              onPress={onGenerateFromPrompt}
+              text="Generate"
+              disabled={!prompt.trim()}
+              type="primary"
+            />
+          </div>
+        )}
+
+        {llmError && (
+          <div className="text-red-400 text-sm">LLM Error: {llmError}</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface LLMResponseDisplayProps {
+  llmResponse: string;
+  llmLoading: boolean;
+  llmReady: boolean;
+}
+
+const LLMResponseDisplay = ({
+  llmResponse,
+  llmLoading,
+  llmReady,
+}: LLMResponseDisplayProps) => {
+  const displayText = useMemo(() => {
+    if (llmLoading) return "Generating code...";
+    if (llmResponse) return llmResponse;
+    if (llmReady) return "LLM ready - enter a prompt above to generate code";
+    return "Select a model and initialize LLM to start generating code";
+  }, [llmLoading, llmResponse, llmReady]);
+
+  return (
+    <div className="w-full bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">
+      <h2 className="text-2xl font-bold text-green-500">LLM Response</h2>
+      <div className="bg-gray-700 border border-green-500 rounded-lg p-4 text-sm whitespace-pre-wrap h-[300px] overflow-y-auto">
+        <div className="text-green-400 mb-2">Response:</div>
+        {displayText}
+      </div>
+    </div>
+  );
 };
 
 function App() {
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
     undefined,
   );
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [estimatedTimeLeft, setEstimatedTimeLeft] = useState(0);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
+  const [llmResponse, setLlmResponse] = useState<string>("");
+  const [llmLoading, setLlmLoading] = useState(false);
+  const [llmReady, setLlmReady] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<string>("");
 
-    if (isDownloading && selectedModelId) {
-      const modelSizeGB = MODEL_SIZES_GB[selectedModelId];
-      if (!modelSizeGB) {
-        setIsDownloading(false);
-        return;
-      }
-      const modelSizeMB = modelSizeGB * 1024;
-      const totalDownloadTimeSeconds = modelSizeMB / DOWNLOAD_SPEED_MBps;
-      let elapsedSeconds = (downloadProgress / 100) * totalDownloadTimeSeconds;
+  const handleLlmStateChange = useCallback(
+    (response: string, loading: boolean, ready: boolean) => {
+      setLlmResponse(response);
+      setLlmLoading(loading);
+      setLlmReady(ready);
+    },
+    [],
+  );
 
-      interval = setInterval(() => {
-        elapsedSeconds += 0.1;
-        const currentProgress = Math.min(
-          (elapsedSeconds / totalDownloadTimeSeconds) * 100,
-          100,
-        );
-        setDownloadProgress(currentProgress);
-        setEstimatedTimeLeft(
-          Math.max(0, Math.ceil(totalDownloadTimeSeconds - elapsedSeconds)),
-        );
-
-        if (currentProgress >= 100) {
-          setIsDownloading(false);
-          clearInterval(interval);
-        }
-      }, 100);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [isDownloading, selectedModelId, downloadProgress]);
+  const handleCodeGenerated = useCallback((code: string) => {
+    setGeneratedCode(code);
+  }, []);
 
   const handleModelSelect = (modelId: string) => {
-    if (isDownloading && modelId === selectedModelId) return;
     setSelectedModelId(modelId);
-    setIsDownloading(true);
-    setDownloadProgress(0);
-    setEstimatedTimeLeft(0);
+    setLlmResponse("");
+    setLlmLoading(false);
+    setLlmReady(false);
+    setGeneratedCode("");
   };
 
   const selectedModelDetails = AVAILABLE_MODELS.find(
@@ -93,8 +249,8 @@ function App() {
         </p>
       </header>
 
-      <div className="flex flex-col md:flex-row gap-6 w-full max-w-6xl items-start justify-center">
-        <main className="w-full md:w-1/2 p-6 bg-gray-800 rounded-xl shadow-2xl space-y-6">
+      <div className="w-full max-w-6xl space-y-6">
+        <div className="w-full p-6 bg-gray-800 rounded-xl shadow-2xl space-y-6">
           <div className="space-y-2">
             <label
               htmlFor="model-select"
@@ -102,16 +258,12 @@ function App() {
             >
               Choose a Model:
             </label>
-            <Select
-              value={selectedModelId}
-              onValueChange={handleModelSelect}
-              disabled={isDownloading}
-            >
+            <Select value={selectedModelId} onValueChange={handleModelSelect}>
               <SelectTrigger
                 id="model-select"
                 className="w-full bg-gray-700 border-gray-600 text-white focus:ring-pink-500 focus:border-pink-500"
               >
-                <SelectValue placeholder="Select a model to download" />
+                <SelectValue placeholder="Select a model to get started" />
               </SelectTrigger>
               <SelectContent className="bg-gray-700 border-gray-600 text-white">
                 {AVAILABLE_MODELS.map((model) => (
@@ -127,40 +279,36 @@ function App() {
             </Select>
           </div>
 
-          {selectedModelId && (
-            <div className="space-y-3">
-              <div className="text-center">
-                <p className="text-lg font-semibold">
-                  {isDownloading
-                    ? `Downloading: ${selectedModelDetails?.name}`
-                    : `${selectedModelDetails?.name} ready!`}
-                </p>
-              </div>
-
-              {isDownloading && (
-                <div className="space-y-2">
-                  <Progress
-                    value={downloadProgress}
-                    className="w-full [&>div]:bg-pink-500 bg-gray-700"
-                  />
-                  <p className="text-xs text-gray-400 text-center">
-                    {downloadProgress < 100
-                      ? `Estimated time left: ${estimatedTimeLeft}s`
-                      : "Download complete!"}
-                  </p>
-                </div>
-              )}
-              {!isDownloading && downloadProgress === 100 && (
-                <p className="text-sm text-green-400 text-center">
-                  Model successfully downloaded and ready to use.
-                </p>
-              )}
+          {selectedModelDetails && (
+            <div className="text-center">
+              <p className="text-lg font-semibold text-pink-400">
+                Selected: {selectedModelDetails.name}
+              </p>
+              <p className="text-sm text-gray-400">
+                Size: {selectedModelDetails.sizeGB}GB
+              </p>
             </div>
           )}
-        </main>
+        </div>
 
-        <div className="w-full md:w-1/2">
-          <CodeSection />
+        <div className="w-full">
+          <LLMCodeGenerator
+            onCodeGenerated={handleCodeGenerated}
+            onLlmStateChange={handleLlmStateChange}
+            selectedModelId={selectedModelId}
+          />
+        </div>
+
+        <div className="w-full">
+          <CodeSection generatedCode={generatedCode} />
+        </div>
+
+        <div className="w-full">
+          <LLMResponseDisplay
+            llmResponse={llmResponse}
+            llmLoading={llmLoading}
+            llmReady={llmReady}
+          />
         </div>
       </div>
 

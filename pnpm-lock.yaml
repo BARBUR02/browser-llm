@@ -7,6 +7,9 @@ settings:
 importers:
   .:
     dependencies:
+      "@mlc-ai/web-llm":
+        specifier: ^0.2.79
+        version: 0.2.79
       "@radix-ui/react-progress":
         specifier: ^1.1.7
         version: 1.1.7(@types/react-dom@19.1.5(@types/react@19.1.5))(@types/react@19.1.5)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -22,6 +25,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      loglevel:
+        specifier: ^1.9.2
+        version: 1.9.2
       lucide-react:
         specifier: ^0.511.0
         version: 0.511.0(react@19.1.0)
@@ -612,6 +618,12 @@ packages:
     resolution:
       {
         integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==,
+      }
+
+  "@mlc-ai/web-llm@0.2.79":
+    resolution:
+      {
+        integrity: sha512-Hy1ZHQ0o2bZGZoVnGK48+fts/ZSKwLe96xjvqL/6C59Mem9HoHTcFE07NC2E23mRmhd01tL655N6CPeYmwWgwQ==,
       }
 
   "@nodelib/fs.scandir@2.1.5":
@@ -2101,6 +2113,13 @@ packages:
         integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==,
       }
 
+  loglevel@1.9.2:
+    resolution:
+      {
+        integrity: sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==,
+      }
+    engines: { node: ">= 0.6.0" }
+
   lru-cache@5.1.1:
     resolution:
       {
@@ -2934,6 +2953,10 @@ snapshots:
     dependencies:
       "@jridgewell/resolve-uri": 3.1.2
       "@jridgewell/sourcemap-codec": 1.5.0
+
+  "@mlc-ai/web-llm@0.2.79":
+    dependencies:
+      loglevel: 1.9.2
 
   "@nodelib/fs.scandir@2.1.5":
     dependencies:
@@ -3804,6 +3827,8 @@ snapshots:
       p-locate: 5.0.0
 
   lodash.merge@4.6.2: {}
+
+  loglevel@1.9.2: {}
 
   lru-cache@5.1.1:
     dependencies:

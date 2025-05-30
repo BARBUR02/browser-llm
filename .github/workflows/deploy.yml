@@ -53,6 +53,8 @@ jobs:
           echo "Condition 2 result: ${{ inputs.run_deploy == 'true' }}"
           echo "Condition 2 alt result: ${{ inputs.run_deploy == true }}"
           echo "Combined condition: ${{ (github.event_name == 'workflow_dispatch' && inputs.run_deploy == 'true') }}"
+          echo "Combined condition alt: ${{ (github.event_name == 'workflow_dispatch' && inputs.run_deploy) }}"
+          echo "Combined condition al2": ${{ (github.event_name == 'workflow_dispatch' && inputs.run_deploy == true) }}"
 
   deploy_to_github_pages:
     if: |

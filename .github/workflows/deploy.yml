@@ -39,6 +39,21 @@ jobs:
       - name: Check formatting with Prettier
         run: pnpm run format:check
 
+  # Add this debug job to see what's happening
+  debug_conditions:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug workflow dispatch values
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Input run_deploy: '${{ inputs.run_deploy }}'"
+          echo "Input run_deploy type: $(echo '${{ inputs.run_deploy }}' | wc -c) characters"
+          echo "Condition 1 result: ${{ github.event_name == 'workflow_dispatch' }}"
+          echo "Condition 2 result: ${{ inputs.run_deploy == 'true' }}"
+          echo "Condition 2 alt result: ${{ inputs.run_deploy == true }}"
+          echo "Combined condition: ${{ (github.event_name == 'workflow_dispatch' && inputs.run_deploy == 'true') }}"
+
   deploy_to_github_pages:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||

@@ -56,9 +56,9 @@ export const useLLMEngine = (
     } catch (err) {
       console.error("Failed to initialize LLM engine:", err);
       const errorMessage =
-          err instanceof Error ? err.message : "Failed to initialize engine";
+        err instanceof Error ? err.message : "Failed to initialize engine";
       setError(
-          `${errorMessage}. Try refreshing the page or check console for details.`,
+        `${errorMessage}. Try refreshing the page or check console for details.`,
       );
     } finally {
       setIsLoading(false);

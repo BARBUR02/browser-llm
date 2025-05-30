@@ -42,7 +42,7 @@ jobs:
   deploy_to_github_pages:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && inputs.run_deploy == 'true')
+      (github.event_name == 'workflow_dispatch' && inputs.run_deploy)
     needs: build_and_test
     runs-on: ubuntu-latest
     permissions:

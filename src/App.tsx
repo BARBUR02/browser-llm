@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { CodeSection } from "./components/ui/CodeSection";
 import { Button } from "./components/ui/Button";
 import { useLLMEngine } from "./hooks/useLLMEngine";
+import { Chat } from "./components/ui/Chat/Chat";
 
 // list of available models: https://github.com/mlc-ai/web-llm/blob/d8b25fed8e81d6f6b27cdc07e839c1c09cfaa43d/src/config.ts#L330
 const AVAILABLE_MODELS = [
@@ -40,7 +41,7 @@ interface LLMCodeGeneratorProps {
   onLlmStateChange: (
     response: string,
     loading: boolean,
-    ready: boolean,
+    ready: boolean
   ) => void;
   selectedModelId: string | undefined;
 }
@@ -92,7 +93,7 @@ Format your response with the code in a code block, provide only the code as you
           (line) =>
             !line.toLowerCase().includes("here") &&
             !line.toLowerCase().includes("this code") &&
-            line.trim() !== "",
+            line.trim() !== ""
         );
         if (codeLines.length > 0) {
           onCodeGenerated(codeLines.join("\n"));
@@ -106,6 +107,7 @@ Format your response with the code in a code block, provide only the code as you
 
   return (
     <div className="w-full bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">
+      <Chat />
       <h2 className="text-2xl font-bold text-green-500">AI Code Generator</h2>
 
       <div className="space-y-3">
@@ -205,7 +207,7 @@ const LLMResponseDisplay = ({
 
 function App() {
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
-    undefined,
+    undefined
   );
 
   const [llmResponse, setLlmResponse] = useState<string>("");
@@ -219,7 +221,7 @@ function App() {
       setLlmLoading(loading);
       setLlmReady(ready);
     },
-    [],
+    []
   );
 
   const handleCodeGenerated = useCallback((code: string) => {
@@ -235,7 +237,7 @@ function App() {
   };
 
   const selectedModelDetails = AVAILABLE_MODELS.find(
-    (m) => m.id === selectedModelId,
+    (m) => m.id === selectedModelId
   );
 
   return (

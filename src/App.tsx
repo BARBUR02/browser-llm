@@ -11,6 +11,7 @@ import { CodeSection } from "./components/ui/CodeSection";
 import { Button } from "./components/ui/Button";
 import { useLLMEngine } from "./hooks/useLLMEngine";
 import { Chat } from "./components/ui/Chat/Chat";
+import { getFullPrompt } from "./utils";
 
 // list of available models: https://github.com/mlc-ai/web-llm/blob/d8b25fed8e81d6f6b27cdc07e839c1c09cfaa43d/src/config.ts#L330
 const AVAILABLE_MODELS = [
@@ -56,7 +57,7 @@ const LLMCodeGenerator = ({
   const {
     isLoading: llmInitLoading,
     loadingProgress,
-    error: llmError,
+    initializeError: llmError,
     isReady: llmReady,
     generateResponse,
     initializeEngine,
@@ -72,11 +73,7 @@ const LLMCodeGenerator = ({
     onLlmStateChange("", true, llmReady);
 
     try {
-      const fullPrompt = `Generate Python code for the following request: "${prompt.trim()}". 
-            
-Please provide clean, executable Python code with comments. Include any necessary imports. 
-If the request involves data processing, use basic Python libraries.
-Format your response with the code in a code block, provide only the code as your response.`;
+      const fullPrompt = getFullPrompt(prompt);
 
       const response = await generateResponse(fullPrompt);
       onLlmStateChange(response, false, llmReady);

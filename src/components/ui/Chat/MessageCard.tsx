@@ -11,13 +11,13 @@ export const MessageCard = (props: MessageCardProps) => {
       : { backgroundColor: "lightblue", marginRight: 200 };
   };
   return (
-    <div
+    <pre
       style={{
         padding: 20,
         ...getAuthorStyles(),
       }}
     >
       {text}
-    </div>
+    </pre>
   );
 };

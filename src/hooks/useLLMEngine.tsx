@@ -5,7 +5,7 @@ interface UseLLMEngineReturn {
   engine: MLCEngine | null;
   isLoading: boolean;
   loadingProgress: number;
-  error: string | null;
+  initializeError: string | null;
   isReady: boolean;
   generateResponse: (prompt: string) => Promise<string>;
   initializeEngine: () => Promise<void>;
@@ -16,12 +16,12 @@ type ProgressEvent = {
 };
 
 export const useLLMEngine = (
-  modelId: string = "Llama-3.2-1B-Instruct-q4f16_1-MLC",
+  modelId: string = "Llama-3.2-1B-Instruct-q4f16_1-MLC"
 ): UseLLMEngineReturn => {
   const [engine, setEngine] = useState<MLCEngine | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [initializeError, setInitializeError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const engineRef = useRef<MLCEngine | null>(null);
 
@@ -38,7 +38,7 @@ export const useLLMEngine = (
     }
 
     setIsLoading(true);
-    setError(null);
+    setInitializeError(null);
     setLoadingProgress(0);
 
     try {
@@ -57,8 +57,8 @@ export const useLLMEngine = (
       console.error("Failed to initialize LLM engine:", err);
       const errorMessage =
         err instanceof Error ? err.message : "Failed to initialize engine";
-      setError(
-        `${errorMessage}. Try refreshing the page or check console for details.`,
+      setInitializeError(
+        `${errorMessage}. Try refreshing the page or check console for details.`
       );
     } finally {
       setIsLoading(false);
@@ -82,11 +82,11 @@ export const useLLMEngine = (
       } catch (err) {
         console.error("Failed to generate response:", err);
         throw new Error(
-          err instanceof Error ? err.message : "Failed to generate response",
+          err instanceof Error ? err.message : "Failed to generate response"
         );
       }
     },
-    [isReady],
+    [isReady]
   );
 
   useEffect(() => {
@@ -101,7 +101,7 @@ export const useLLMEngine = (
     engine,
     isLoading,
     loadingProgress,
-    error,
+    initializeError,
     isReady,
     generateResponse,
     initializeEngine,

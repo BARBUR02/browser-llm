@@ -10,6 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { CodeSection } from "./components/ui/CodeSection";
 import { Button } from "./components/ui/Button";
 import { useLLMEngine } from "./hooks/useLLMEngine";
+import { Chat } from "./components/ui/Chat/Chat";
+import { getFullPrompt } from "./utils";
 
 // list of available models: https://github.com/mlc-ai/web-llm/blob/d8b25fed8e81d6f6b27cdc07e839c1c09cfaa43d/src/config.ts#L330
 const AVAILABLE_MODELS = [
@@ -40,7 +42,7 @@ interface LLMCodeGeneratorProps {
   onLlmStateChange: (
     response: string,
     loading: boolean,
-    ready: boolean,
+    ready: boolean
   ) => void;
   selectedModelId: string | undefined;
 }
@@ -55,7 +57,7 @@ const LLMCodeGenerator = ({
   const {
     isLoading: llmInitLoading,
     loadingProgress,
-    error: llmError,
+    initializeError: llmError,
     isReady: llmReady,
     generateResponse,
     initializeEngine,
@@ -71,12 +73,7 @@ const LLMCodeGenerator = ({
     onLlmStateChange("", true, llmReady);
 
     try {
-      const fullPrompt = `Generate Python code for the following request: "${prompt.trim()}". 
-            
-Please provide clean, executable Python code with comments. Include any necessary imports. 
-If the request involves data processing, use basic Python libraries.
-Format your response with the code in a code block, provide only the code as your response.`;
-
+      const fullPrompt = getFullPrompt(prompt);
       const response = await generateResponse(fullPrompt);
       onLlmStateChange(response, false, llmReady);
 
@@ -92,7 +89,7 @@ Format your response with the code in a code block, provide only the code as you
           (line) =>
             !line.toLowerCase().includes("here") &&
             !line.toLowerCase().includes("this code") &&
-            line.trim() !== "",
+            line.trim() !== ""
         );
         if (codeLines.length > 0) {
           onCodeGenerated(codeLines.join("\n"));
@@ -205,7 +202,7 @@ const LLMResponseDisplay = ({
 
 function App() {
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
-    undefined,
+    undefined
   );
 
   const [llmResponse, setLlmResponse] = useState<string>("");
@@ -219,7 +216,7 @@ function App() {
       setLlmLoading(loading);
       setLlmReady(ready);
     },
-    [],
+    []
   );
 
   const handleCodeGenerated = useCallback((code: string) => {
@@ -235,7 +232,7 @@ function App() {
   };
 
   const selectedModelDetails = AVAILABLE_MODELS.find(
-    (m) => m.id === selectedModelId,
+    (m) => m.id === selectedModelId
   );
 
   return (
@@ -248,6 +245,8 @@ function App() {
           Run Large Language Models directly in your browser with WASM.
         </p>
       </header>
+
+      <Chat />
 
       <div className="w-full max-w-6xl space-y-6">
         <div className="w-full p-6 bg-gray-800 rounded-xl shadow-2xl space-y-6">

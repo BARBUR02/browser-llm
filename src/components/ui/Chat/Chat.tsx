@@ -1,18 +1,24 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { MessageCard, type MessageCardProps } from "./MessageCard";
 import { Button } from "../Button";
 import { useLLMEngine } from "@/hooks/useLLMEngine";
 import { extractCodeFromLLMResponse } from "@/utils";
+import { useCodeRunner } from "@/hooks/useCodeRunner";
+import { ChatMessagePlaceholder } from "./ChatMessagePlaceholder";
 
+// TODO this component should only take modelId and be displayed when it's ready to use
+// no initialization should take place here
 export const Chat = () => {
-  const [items, setItems] = useState<MessageCardProps[]>([
-    { author: "user", text: "hello, generate something" },
-    { author: "chat", type: "message", text: "ok" },
-  ]);
-
   const [input, setInput] = useState<string | undefined>(undefined);
+  const [messages, setMessages] = useState<MessageCardProps[]>([]);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generateCodeLoading, setGenerateCodeLoading] = useState(false);
+  const {
+    runPython,
+    result: executeCodeResult,
+    loading: executeCodeLoading,
+    error: executeCodeError,
+  } = useCodeRunner();
 
   const {
     initializeEngine,
@@ -26,10 +32,11 @@ export const Chat = () => {
     initializeEngine();
   }, [initializeEngine]);
 
-  const getResposneMessage = useCallback(
+  // get code response from model and start executing code
+  const handlePromptSubmission = useCallback(
     async (prompt: string): Promise<MessageCardProps> => {
       try {
-        setIsSubmitting(true);
+        setGenerateCodeLoading(true);
         const fullPrompt = `Generate Python code for the following request: "${prompt.trim()}". 
             
         Please provide clean, executable Python code with comments. Include any necessary imports. 
@@ -38,6 +45,8 @@ export const Chat = () => {
 
         const responseText = await generateResponse(fullPrompt);
         const extracedCodeText = extractCodeFromLLMResponse(responseText);
+
+        runPython(extracedCodeText);
 
         const chatMessage: MessageCardProps = {
           author: "chat",
@@ -60,11 +69,32 @@ export const Chat = () => {
 
         return chatMessage;
       } finally {
-        setIsSubmitting(false);
+        setGenerateCodeLoading(false);
       }
     },
-    [generateResponse]
+    [generateResponse, runPython]
   );
+
+  // create message with executed Python code result
+  useEffect(() => {
+    if (!executeCodeLoading && (executeCodeResult || executeCodeError)) {
+      if (executeCodeResult) {
+        const message: MessageCardProps = {
+          author: "chat",
+          type: "code",
+          text: executeCodeResult,
+        };
+        setMessages((prevItems) => [...prevItems, message]);
+      } else {
+        const message: MessageCardProps = {
+          author: "chat",
+          type: "message",
+          text: executeCodeError ?? "something went wrong",
+        };
+        setMessages((prevItems) => [...prevItems, message]);
+      }
+    }
+  }, [executeCodeLoading, executeCodeResult, executeCodeError]);
 
   const onSubmitPress = async () => {
     if (!input) return;
@@ -73,31 +103,29 @@ export const Chat = () => {
       author: "user",
       text: input,
     };
-    setItems((prevItems) => [...prevItems, userMessage]);
+    setMessages((prevItems) => [...prevItems, userMessage]);
     setInput(undefined);
 
-    const chatMessage = await getResposneMessage(input);
-    if (chatMessage) {
-      setItems((prevItems) => [...prevItems, chatMessage]);
-    } else {
-      console.error(
-        "this should not happen - button should be blocked in this case"
-      );
-    }
+    const chatMessage = await handlePromptSubmission(input);
+    setMessages((prevItems) => [...prevItems, chatMessage]);
   };
 
-  const getButtonText = () => {
+  const buttonText = useMemo(() => {
     if (!isReady) return `Loading model... (${loadingProgress}%)`;
-    if (isSubmitting) return "Generating...";
+    if (generateCodeLoading) return "Generating code...";
+    if (executeCodeLoading) return "Executing code...";
     return "Generate";
-  };
+  }, [isReady, loadingProgress, generateCodeLoading, executeCodeLoading]);
 
   return (
     <>
       <div style={{ display: "flex", gap: 20, flexDirection: "column" }}>
-        {items.map((item, index) => {
+        {messages.map((item, index) => {
           return <MessageCard key={index} {...item} />;
         })}
+
+        <ChatMessagePlaceholder loading={generateCodeLoading} />
+        <ChatMessagePlaceholder loading={executeCodeLoading} />
 
         <textarea
           value={input ?? ""}
@@ -105,14 +133,16 @@ export const Chat = () => {
           placeholder="Enter your prompt and generate Python code..."
           rows={6}
           className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-sm font-mono focus:ring-2 focus:ring-pink-500"
-          disabled={!isReady || isSubmitting}
+          disabled={!isReady || generateCodeLoading || executeCodeLoading}
         />
 
         <Button
           onPress={onSubmitPress}
-          text={getButtonText()}
+          text={buttonText}
           type="primary"
-          disabled={!input || !isReady || isSubmitting}
+          disabled={
+            !input || !isReady || generateCodeLoading || executeCodeLoading
+          }
         />
 
         {initializeError && (

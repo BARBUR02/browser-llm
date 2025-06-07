@@ -74,7 +74,6 @@ const LLMCodeGenerator = ({
 
     try {
       const fullPrompt = getFullPrompt(prompt);
-
       const response = await generateResponse(fullPrompt);
       onLlmStateChange(response, false, llmReady);
 
@@ -104,7 +103,6 @@ const LLMCodeGenerator = ({
 
   return (
     <div className="w-full bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">
-      <Chat />
       <h2 className="text-2xl font-bold text-green-500">AI Code Generator</h2>
 
       <div className="space-y-3">
@@ -240,6 +238,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-4 space-y-8">
       <header className="text-center">
+        <Chat />
         <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
           Browser LLM
         </h1>

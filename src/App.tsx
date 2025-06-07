@@ -238,7 +238,6 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-4 space-y-8">
       <header className="text-center">
-        <Chat />
         <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
           Browser LLM
         </h1>
@@ -246,6 +245,8 @@ function App() {
           Run Large Language Models directly in your browser with WASM.
         </p>
       </header>
+
+      <Chat />
 
       <div className="w-full max-w-6xl space-y-6">
         <div className="w-full p-6 bg-gray-800 rounded-xl shadow-2xl space-y-6">

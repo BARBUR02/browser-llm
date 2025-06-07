@@ -5,19 +5,20 @@ export type MessageCardProps =
 export const MessageCard = (props: MessageCardProps) => {
   const { author, text } = props;
 
-  const getAuthorStyles = () => {
-    return author === "user"
-      ? { backgroundColor: "pink", marginLeft: 200 }
-      : { backgroundColor: "lightblue", marginRight: 200 };
-  };
+  const isUser = author === "user";
+  const isCode = author === "chat" && props.type === "code";
+
+  const containerClass = isUser
+    ? "bg-gray-700 text-white self-end text-sm font-mono"
+    : isCode
+      ? "bg-gray-900 border border-green-500 text-green-400 font-mono"
+      : "bg-gray-700 text-white self-start";
+
   return (
-    <pre
-      style={{
-        padding: 20,
-        ...getAuthorStyles(),
-      }}
+    <div
+      className={`max-w-[80%] rounded-xl p-4 shadow-md ${containerClass} whitespace-pre-wrap`}
     >
       {text}
-    </pre>
+    </div>
   );
 };

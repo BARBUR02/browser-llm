@@ -38,10 +38,10 @@ export const Chat = () => {
       try {
         setGenerateCodeLoading(true);
         const fullPrompt = `Generate Python code for the following request: "${prompt.trim()}". 
-            
-        Please provide clean, executable Python code with comments. Include any necessary imports. 
-        If the request involves data processing, use basic Python libraries.
-        Format your response with the code in a code block, provide only the code as your response.`;
+
+Please provide clean, executable Python code with comments. Include any necessary imports. 
+If the request involves data processing, use basic Python libraries.
+Format your response with the code in a code block, provide only the code as your response.`;
 
         const responseText = await generateResponse(fullPrompt);
         const extracedCodeText = extractCodeFromLLMResponse(responseText);
@@ -118,15 +118,17 @@ export const Chat = () => {
   }, [isReady, loadingProgress, generateCodeLoading, executeCodeLoading]);
 
   return (
-    <>
-      <div style={{ display: "flex", gap: 20, flexDirection: "column" }}>
+    <div className="w-full max-w-3xl bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-8 mx-auto mb-8">
+      <div className="flex flex-col space-y-4">
         {messages.map((item, index) => {
           return <MessageCard key={index} {...item} />;
         })}
 
         <ChatMessagePlaceholder loading={generateCodeLoading} />
         <ChatMessagePlaceholder loading={executeCodeLoading} />
+      </div>
 
+      <div className="flex flex-col space-y-3">
         <textarea
           value={input ?? ""}
           onChange={(e) => setInput(e.target.value)}
@@ -144,11 +146,13 @@ export const Chat = () => {
             !input || !isReady || generateCodeLoading || executeCodeLoading
           }
         />
-
-        {initializeError && (
-          <div style={{ color: "red" }}>⚠️ Engine error: {initializeError}</div>
-        )}
       </div>
-    </>
+
+      {initializeError && (
+        <div className="text-red-400 text-sm">
+          ⚠️ Engine error: {initializeError}
+        </div>
+      )}
+    </div>
   );
 };

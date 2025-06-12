@@ -45,7 +45,7 @@ interface LLMCodeGeneratorProps {
   ) => void;
   selectedModelId: string | undefined;
   selectedMode: string;
-  onModeChange: (mode: string) => void; // add prop
+  onModeChange: (mode: string) => void;
 }
 
 const LLMCodeGenerator = ({
@@ -53,7 +53,7 @@ const LLMCodeGenerator = ({
   onLlmStateChange,
   selectedModelId,
   selectedMode,
-  onModeChange, // receive prop
+  onModeChange,
 }: LLMCodeGeneratorProps) => {
   const [prompt, setPrompt] = useState<string>("");
 
@@ -305,7 +305,7 @@ function App() {
             onLlmStateChange={handleLlmStateChange}
             selectedModelId={selectedModelId}
             selectedMode={selectedMode}
-            onModeChange={setSelectedMode} // pass handler
+            onModeChange={setSelectedMode}
           />
         </div>
 

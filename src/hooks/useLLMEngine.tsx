@@ -16,7 +16,7 @@ type ProgressEvent = {
 };
 
 export const useLLMEngine = (
-  modelId: string = "Llama-3.2-1B-Instruct-q4f16_1-MLC"
+  modelId: string = "Llama-3.2-1B-Instruct-q4f16_1-MLC",
 ): UseLLMEngineReturn => {
   const [engine, setEngine] = useState<MLCEngine | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +58,7 @@ export const useLLMEngine = (
       const errorMessage =
         err instanceof Error ? err.message : "Failed to initialize engine";
       setInitializeError(
-        `${errorMessage}. Try refreshing the page or check console for details.`
+        `${errorMessage}. Try refreshing the page or check console for details.`,
       );
     } finally {
       setIsLoading(false);
@@ -82,11 +82,11 @@ export const useLLMEngine = (
       } catch (err) {
         console.error("Failed to generate response:", err);
         throw new Error(
-          err instanceof Error ? err.message : "Failed to generate response"
+          err instanceof Error ? err.message : "Failed to generate response",
         );
       }
     },
-    [isReady]
+    [isReady],
   );
 
   useEffect(() => {

@@ -13,7 +13,7 @@ export function extractCodeFromLLMResponse(response: string): string {
     (line) =>
       !line.toLowerCase().includes("here") &&
       !line.toLowerCase().includes("this code") &&
-      line.trim() !== ""
+      line.trim() !== "",
   );
 
   return codeLines.join("\n");

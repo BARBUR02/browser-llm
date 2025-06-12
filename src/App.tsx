@@ -42,7 +42,7 @@ interface LLMCodeGeneratorProps {
   onLlmStateChange: (
     response: string,
     loading: boolean,
-    ready: boolean
+    ready: boolean,
   ) => void;
   selectedModelId: string | undefined;
 }
@@ -89,7 +89,7 @@ const LLMCodeGenerator = ({
           (line) =>
             !line.toLowerCase().includes("here") &&
             !line.toLowerCase().includes("this code") &&
-            line.trim() !== ""
+            line.trim() !== "",
         );
         if (codeLines.length > 0) {
           onCodeGenerated(codeLines.join("\n"));
@@ -202,7 +202,7 @@ const LLMResponseDisplay = ({
 
 function App() {
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
-    undefined
+    undefined,
   );
 
   const [llmResponse, setLlmResponse] = useState<string>("");
@@ -216,7 +216,7 @@ function App() {
       setLlmLoading(loading);
       setLlmReady(ready);
     },
-    []
+    [],
   );
 
   const handleCodeGenerated = useCallback((code: string) => {
@@ -232,7 +232,7 @@ function App() {
   };
 
   const selectedModelDetails = AVAILABLE_MODELS.find(
-    (m) => m.id === selectedModelId
+    (m) => m.id === selectedModelId,
   );
 
   return (

@@ -72,7 +72,7 @@ Format your response with the code in a code block, provide only the code as you
         setGenerateCodeLoading(false);
       }
     },
-    [generateResponse, runPython]
+    [generateResponse, runPython],
   );
 
   // create message with executed Python code result

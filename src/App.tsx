@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { CodeSection } from "./components/ui/CodeSection";
 import { Button } from "./components/ui/Button";
 import { useLLMEngine } from "./hooks/useLLMEngine";
+import { ModeSelector } from "./components/ui/ModeSelector";
 
 // list of available models: https://github.com/mlc-ai/web-llm/blob/d8b25fed8e81d6f6b27cdc07e839c1c09cfaa43d/src/config.ts#L330
 const AVAILABLE_MODELS = [
@@ -43,12 +44,16 @@ interface LLMCodeGeneratorProps {
     ready: boolean,
   ) => void;
   selectedModelId: string | undefined;
+  selectedMode: string;
+  onModeChange: (mode: string) => void; // add prop
 }
 
 const LLMCodeGenerator = ({
   onCodeGenerated,
   onLlmStateChange,
   selectedModelId,
+  selectedMode,
+  onModeChange, // receive prop
 }: LLMCodeGeneratorProps) => {
   const [prompt, setPrompt] = useState<string>("");
 
@@ -107,6 +112,8 @@ Format your response with the code in a code block, provide only the code as you
   return (
     <div className="w-full bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">
       <h2 className="text-2xl font-bold text-green-500">AI Code Generator</h2>
+      {/* Mode selector */}
+      <ModeSelector value={selectedMode} onChange={onModeChange} />
 
       <div className="space-y-3">
         {selectedModelId && !llmReady && (
@@ -212,6 +219,7 @@ function App() {
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmReady, setLlmReady] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string>("");
+  const [selectedMode, setSelectedMode] = useState<string>("ask");
 
   const handleLlmStateChange = useCallback(
     (response: string, loading: boolean, ready: boolean) => {
@@ -296,6 +304,8 @@ function App() {
             onCodeGenerated={handleCodeGenerated}
             onLlmStateChange={handleLlmStateChange}
             selectedModelId={selectedModelId}
+            selectedMode={selectedMode}
+            onModeChange={setSelectedMode} // pass handler
           />
         </div>
 

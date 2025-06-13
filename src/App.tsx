@@ -70,7 +70,7 @@ const LLMCodeGenerator = ({
     onLlmStateChange("", false, llmReady);
   }, [llmReady, onLlmStateChange]);
 
-  const onGenerateFromPrompt = useCallback(async () => {
+  const handleAskMode = useCallback(async () => {
     if (!prompt.trim() || !llmReady) return;
 
     onLlmStateChange("", true, llmReady);
@@ -108,6 +108,18 @@ Format your response with the code in a code block, provide only the code as you
       onLlmStateChange(errorMsg, false, llmReady);
     }
   }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
+
+  const handleAgentMode = useCallback(async () => {
+    throw new Error("Agent mode not implemented");
+  }, []);
+
+  const onGenerateFromPrompt = useCallback(async () => {
+    if (selectedMode === "ask") {
+      await handleAskMode();
+    } else if (selectedMode === "agent") {
+      await handleAgentMode();
+    }
+  }, [selectedMode, handleAskMode, handleAgentMode]);
 
   return (
     <div className="w-full bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">

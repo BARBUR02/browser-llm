@@ -70,6 +70,7 @@ const LLMCodeGenerator = ({
     onLlmStateChange("", false, llmReady);
   }, [llmReady, onLlmStateChange]);
 
+  // Ask mode logic (current implementation)
   const handleAskMode = useCallback(async () => {
     if (!prompt.trim() || !llmReady) return;
 
@@ -109,10 +110,51 @@ Format your response with the code in a code block, provide only the code as you
     }
   }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
 
+  // Agent mode logic: generate code and set it (auto-run handled by CodeSection)
   const handleAgentMode = useCallback(async () => {
-    throw new Error("Agent mode not implemented");
-  }, []);
+    if (!prompt.trim() || !llmReady) return;
 
+    onLlmStateChange("", true, llmReady);
+
+    try {
+      const fullPrompt = `Generate Python code for the following request: "${prompt.trim()}". 
+            
+Please provide clean, executable Python code with comments. Include any necessary imports. 
+If the request involves data processing, use basic Python libraries.
+Format your response with the code in a code block, provide only the code as your response.`;
+
+      const response = await generateResponse(fullPrompt);
+      onLlmStateChange(response, false, llmReady);
+
+      const codeMatch =
+        response.match(/```python\n([\s\S]*?)\n```/) ||
+        response.match(/```\n([\s\S]*?)\n```/);
+
+      let code = "";
+      if (codeMatch) {
+        code = codeMatch[1].trim();
+      } else {
+        const lines = response.split("\n");
+        const codeLines = lines.filter(
+          (line) =>
+            !line.toLowerCase().includes("here") &&
+            !line.toLowerCase().includes("this code") &&
+            line.trim() !== "",
+        );
+        if (codeLines.length > 0) {
+          code = codeLines.join("\n");
+        }
+      }
+      if (code) {
+        onCodeGenerated(code);
+      }
+    } catch (err) {
+      const errorMsg = `Error: ${err instanceof Error ? err.message : "Failed to generate code"}`;
+      onLlmStateChange(errorMsg, false, llmReady);
+    }
+  }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
+
+  // Unified handler based on mode
   const onGenerateFromPrompt = useCallback(async () => {
     if (selectedMode === "ask") {
       await handleAskMode();
@@ -322,7 +364,10 @@ function App() {
         </div>
 
         <div className="w-full">
-          <CodeSection generatedCode={generatedCode} />
+          <CodeSection
+            generatedCode={generatedCode}
+            autoRun={selectedMode === "agent"}
+          />
         </div>
 
         <div className="w-full">

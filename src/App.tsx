@@ -160,7 +160,6 @@ Format your response with the code in a code block, provide only the code as you
     }
   }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
 
-  // When generating, add prompt to history
   const onGenerateFromPrompt = useCallback(async () => {
     if (!prompt.trim() || !llmReady) return;
     onPrompt(prompt.trim());
@@ -273,7 +272,6 @@ const LLMResponseDisplay = ({
   );
 };
 
-// Context type
 type AgentContext = {
   task: string;
   history: { code: string; error?: string }[];
@@ -335,7 +333,6 @@ function App() {
     [],
   );
 
-  // When code is generated, update context history with code and latest error
   const handleCodeGenerated = useCallback((code: string) => {
     setGeneratedCode(code);
     setContext((ctx) => ({
@@ -344,7 +341,6 @@ function App() {
     }));
   }, [codeError]);
 
-  // Helper to handle prompt submission and update context
   const handlePrompt = useCallback(
     (prompt: string) => {
       setContext({ task: prompt, history: [] });

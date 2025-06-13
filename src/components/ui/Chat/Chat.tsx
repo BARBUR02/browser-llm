@@ -113,8 +113,8 @@ Format your response with the code in a code block, provide only the code as you
   }, [isReady, loadingProgress, generateCodeLoading, executeCodeLoading]);
 
   return (
-    <div className="w-full max-w-3xl bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-8 mx-auto mb-8">
-      <div className="flex flex-col space-y-4">
+    <div className="w-full flex flex-col max-w-3xl bg-gray-800 text-white rounded-xl shadow-xl p-6 mb-8 h-[640px]">
+      <div className="flex-1 space-y-4 overflow-y-auto pr-2 mb-4">
         {messages.map((item, index) => {
           return <MessageCard key={index} {...item} />;
         })}
@@ -128,7 +128,7 @@ Format your response with the code in a code block, provide only the code as you
           value={input ?? ""}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Enter your prompt and generate Python code..."
-          rows={6}
+          rows={4}
           className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-sm font-mono focus:ring-2 focus:ring-pink-500"
           disabled={!isReady || generateCodeLoading || executeCodeLoading}
         />

@@ -26,6 +26,7 @@ export const ModelProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const changeSelectedModel = (id: string) => {
+    console.log("model change");
     setSelectedModelId(id);
     initialize(id);
   };
@@ -47,8 +48,8 @@ export const ModelProvider: React.FC<{ children: ReactNode }> = ({
         generateResponse,
         initProgress,
         isInitLoading,
-        readyToUse,
         initError,
+        readyToUse,
       }}
     >
       {children}

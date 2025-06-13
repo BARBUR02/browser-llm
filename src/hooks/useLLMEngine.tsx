@@ -38,10 +38,6 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
 
   const initialize = useCallback(
     async (modelId: string) => {
-      if (engineRef.current) {
-        return;
-      }
-
       setIsInitLoading(true);
       setInitError(undefined);
       setInitProgress(0);
@@ -51,10 +47,10 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
         const newEngine = await CreateMLCEngine(modelId, {
           initProgressCallback,
         });
-        engineRef.current = newEngine;
-        setEngine(newEngine);
 
         console.log("Engine initialized successfully");
+        engineRef.current = newEngine;
+        setEngine(newEngine);
       } catch (err) {
         console.error("Failed to initialize LLM engine:", err);
         const errorMessage =

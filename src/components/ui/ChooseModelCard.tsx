@@ -15,6 +15,7 @@ export const ChooseModelCard = () => {
     changeSelectedModel,
     isInitLoading,
     initProgress: loadingProgress,
+    initError,
   } = useModelContext();
 
   const selectedModelDetails = AVAILABLE_MODELS.find(
@@ -67,6 +68,8 @@ export const ChooseModelCard = () => {
           isLoading={isInitLoading}
           progress={loadingProgress}
         />
+
+        {initError && <div>{initError}</div>}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { MessageCard, type MessageCardProps } from "./MessageCard";
 import { Button } from "../Button";
-import { extractCodeFromLLMResponse } from "@/utils";
+import { extractCodeFromLLMResponse, getFullPrompt } from "@/utils";
 import { useCodeRunner } from "@/hooks/useCodeRunner";
 import { ChatMessagePlaceholder } from "./ChatMessagePlaceholder";
 import { useModelContext } from "@/context/ModelContext";
@@ -27,16 +27,16 @@ export const Chat = () => {
   const handlePromptSubmission = useCallback(
     async (prompt: string): Promise<MessageCardProps> => {
       try {
+        // generate code through model
         setGenerateCodeLoading(true);
-        const fullPrompt = `Generate Python code for the following request: "${prompt.trim()}". 
 
-Please provide clean, executable Python code with comments. Include any necessary imports. 
-If the request involves data processing, use basic Python libraries.
-Format your response with the code in a code block, provide only the code as your response.`;
-
+        const fullPrompt = getFullPrompt(prompt.trim());
         const responseText = await generateResponse(fullPrompt);
         const extracedCodeText = extractCodeFromLLMResponse(responseText);
 
+        setGenerateCodeLoading(false);
+
+        // run generated code
         runPython(extracedCodeText);
 
         const chatMessage: MessageCardProps = {
@@ -114,8 +114,14 @@ Format your response with the code in a code block, provide only the code as you
           return <MessageCard key={index} {...item} />;
         })}
 
-        <ChatMessagePlaceholder loading={generateCodeLoading} />
-        <ChatMessagePlaceholder loading={executeCodeLoading} />
+        <ChatMessagePlaceholder
+          loading={generateCodeLoading}
+          text={"Generating..."}
+        />
+        <ChatMessagePlaceholder
+          loading={executeCodeLoading}
+          text={"Executing..."}
+        />
       </div>
 
       <div className="flex flex-col space-y-3">

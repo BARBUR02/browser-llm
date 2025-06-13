@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { CodeSection } from "./components/ui/CodeSection";
 import { Button } from "./components/ui/Button";
 import { useLLMEngine } from "./hooks/useLLMEngine";
+import { ModeSelector } from "./components/ui/ModeSelector";
 
 // list of available models: https://github.com/mlc-ai/web-llm/blob/d8b25fed8e81d6f6b27cdc07e839c1c09cfaa43d/src/config.ts#L330
 const AVAILABLE_MODELS = [
@@ -43,14 +44,30 @@ interface LLMCodeGeneratorProps {
     ready: boolean,
   ) => void;
   selectedModelId: string | undefined;
+  selectedMode: string;
+  onModeChange: (mode: string) => void;
+  context: AgentContext;
+  buildPromptFromContext: (context: AgentContext, maxHistoryAttempts?: number) => string;
+  codeError?: string;
+  codeResult?: string;
+  onPrompt: (prompt: string) => void;
 }
 
 const LLMCodeGenerator = ({
   onCodeGenerated,
   onLlmStateChange,
   selectedModelId,
+  selectedMode,
+  onModeChange,
+  context,
+  buildPromptFromContext,
+  codeError,
+  codeResult,
+  onPrompt,
 }: LLMCodeGeneratorProps) => {
   const [prompt, setPrompt] = useState<string>("");
+  const [agentAttempts, setAgentAttempts] = useState<number>(0);
+  const [agentActive, setAgentActive] = useState<boolean>(false);
 
   const {
     isLoading: llmInitLoading,
@@ -65,7 +82,7 @@ const LLMCodeGenerator = ({
     onLlmStateChange("", false, llmReady);
   }, [llmReady, onLlmStateChange]);
 
-  const onGenerateFromPrompt = useCallback(async () => {
+  const handleAskMode = useCallback(async () => {
     if (!prompt.trim() || !llmReady) return;
 
     onLlmStateChange("", true, llmReady);
@@ -104,9 +121,137 @@ Format your response with the code in a code block, provide only the code as you
     }
   }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
 
+  const startAgentMode = useCallback(async () => {
+    if (!prompt.trim() || !llmReady) return;
+    setAgentAttempts(1);
+    setAgentActive(true);
+
+    const fullPrompt = `You are a Python coding agent. Your job is to solve the following task by generating correct and executable Python code.
+Task: ${prompt.trim()}
+Return only the code in a Python code block, with no extra explanation.`;
+
+    try {
+      const response = await generateResponse(fullPrompt);
+      onLlmStateChange(response, false, llmReady);
+
+      const codeMatch =
+        response.match(/```python\n([\s\S]*?)\n```/) ||
+        response.match(/```\n([\s\S]*?)\n```/);
+
+      let code = "";
+      if (codeMatch) {
+        code = codeMatch[1].trim();
+      } else {
+        const lines = response.split("\n");
+        const codeLines = lines.filter(
+          (line) =>
+            !line.toLowerCase().includes("here") &&
+            !line.toLowerCase().includes("this code") &&
+            line.trim() !== "",
+        );
+        if (codeLines.length > 0) {
+          code = codeLines.join("\n");
+        }
+      }
+      if (code) {
+        onCodeGenerated(code);
+      }
+    } catch (err) {
+      const errorMsg = `Error: ${err instanceof Error ? err.message : "Failed to generate code"}`;
+      onLlmStateChange(errorMsg, false, llmReady);
+      console.log("Agent error:", errorMsg);
+      setAgentActive(false);
+    }
+  }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
+
+  useEffect(() => {
+    console.log(selectedMode, agentActive, agentAttempts, codeError);
+    if (
+      selectedMode === "agent" &&
+      agentActive &&
+      agentAttempts > 0 &&
+      agentAttempts < 5 &&
+      codeError
+    ) {
+      const run = async () => {
+        const agentPrompt = buildPromptFromContext(context, 1);
+        const fullPrompt = `You are a Python coding agent. Your job is to solve the following task by generating correct and executable Python code.
+You will be shown the task, your previous attempts (if any), and the errors encountered.
+If there are errors, improve the code to fix them. If there are no errors, the task is solved.
+Always return only the improved code in a Python code block, with no extra explanation.
+
+${agentPrompt}
+`;
+        try {
+          console.log("Before generating response in agent mode");
+          const response = await generateResponse(fullPrompt);
+          console.log("Agent response:", response);
+          onLlmStateChange(response, false, llmReady);
+
+          const codeMatch =
+            response.match(/```python\n([\s\S]*?)\n```/) ||
+            response.match(/```\n([\s\S]*?)\n```/);
+
+          console.log("Code generated in agent mode:", codeMatch);
+          let code = "";
+          if (codeMatch) {
+            code = codeMatch[1].trim();
+          } else {
+            const lines = response.split("\n");
+            const codeLines = lines.filter(
+              (line) =>
+                !line.toLowerCase().includes("here") &&
+                !line.toLowerCase().includes("this code") &&
+                line.trim() !== "",
+            );
+            if (codeLines.length > 0) {
+              code = codeLines.join("\n");
+            }
+          }
+
+          if (code) {
+            setAgentAttempts((a) => a + 1);
+            onCodeGenerated(code);
+          
+          } else {
+            console.log("No code generated in agent mode");
+            setAgentActive(false);
+          }
+        } catch (err) {
+          const errorMsg = `Error: ${err instanceof Error ? err.message : "Failed to generate code"}`;
+          onLlmStateChange(errorMsg, false, llmReady);
+          console.log("Agent error2:", errorMsg);
+          setAgentActive(false);
+        }
+      };
+      run();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codeError]);
+
+  useEffect(() => {
+    console.log(agentActive)
+    if (selectedMode === "agent" && agentActive && (agentAttempts >= 5 || codeResult)) {
+      console.log("Stopping agent mode due to max attempts or no error");
+      setAgentActive(false);
+    }
+  }, [agentAttempts, codeError, agentActive, selectedMode, codeResult]);
+
+  const onGenerateFromPrompt = useCallback(async () => {
+    if (!prompt.trim() || !llmReady) return;
+    onPrompt(prompt.trim());
+
+    if (selectedMode === "ask") {
+      await handleAskMode();
+    } else if (selectedMode === "agent") {
+      await startAgentMode();
+    }
+  }, [prompt, llmReady, onPrompt, selectedMode, handleAskMode, startAgentMode]);
+
   return (
     <div className="w-full bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">
       <h2 className="text-2xl font-bold text-green-500">AI Code Generator</h2>
+      <ModeSelector value={selectedMode} onChange={onModeChange} />
 
       <div className="space-y-3">
         {selectedModelId && !llmReady && (
@@ -203,6 +348,45 @@ const LLMResponseDisplay = ({
   );
 };
 
+type AgentContext = {
+  task: string;
+  history: { code: string; error?: string }[];
+};
+
+function buildPromptFromContext(
+  context: AgentContext,
+  maxHistoryAttempts: number = 3
+) {
+  let prompt = `Task: ${context.task}\n`;
+
+  const attempts = context.history.length;
+  const lastEntry = context.history[context.history.length - 1];
+
+  if (lastEntry) {
+    prompt += `\nCurrent code:\n${lastEntry.code}\n`;
+    prompt += `Error: ${lastEntry.error ?? "None"}\n`;
+  }
+
+  if (attempts > 1) {
+    const historyToShow = context.history.slice(
+      Math.max(0, attempts - maxHistoryAttempts - 1),
+      attempts - 1
+    );
+    if (historyToShow.length > 0) {
+      prompt += `\nRecent previous attempts:\n`;
+      historyToShow.forEach((h, i) => {
+        prompt += `Attempt ${attempts - historyToShow.length + i}:\nCode:\n${h.code}\nError:\n${h.error ?? "None"}\n`;
+      });
+    }
+  }
+
+  if (attempts > maxHistoryAttempts) {
+    prompt += `\nNote: Previous ${attempts} attempts failed.\n`;
+  }
+
+  return prompt;
+}
+
 function App() {
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
     undefined,
@@ -212,6 +396,10 @@ function App() {
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmReady, setLlmReady] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string>("");
+  const [selectedMode, setSelectedMode] = useState<string>("ask");
+  const [context, setContext] = useState<AgentContext>({ task: "", history: [] });
+  const [codeError, setCodeError] = useState<string | undefined>(undefined);
+  const [codeResult, setCodeResult] = useState<string | undefined>(undefined);
 
   const handleLlmStateChange = useCallback(
     (response: string, loading: boolean, ready: boolean) => {
@@ -223,8 +411,23 @@ function App() {
   );
 
   const handleCodeGenerated = useCallback((code: string) => {
+    console.log("SET CODE",);
     setGeneratedCode(code);
-  }, []);
+    console.log("AFTER SET CODE");
+    setContext((ctx) => ({
+      ...ctx,
+      history: [...ctx.history, { code, error: codeError }],
+    }));
+  }, [codeError]);
+
+  const handlePrompt = useCallback(
+    (prompt: string) => {
+      setContext({ task: prompt, history: [] });
+      setCodeError(undefined);
+      setCodeResult(undefined);
+    },
+    []
+  );
 
   const handleModelSelect = (modelId: string) => {
     setSelectedModelId(modelId);
@@ -296,11 +499,22 @@ function App() {
             onCodeGenerated={handleCodeGenerated}
             onLlmStateChange={handleLlmStateChange}
             selectedModelId={selectedModelId}
+            selectedMode={selectedMode}
+            onModeChange={setSelectedMode}
+            context={context}
+            buildPromptFromContext={buildPromptFromContext}
+            codeError={codeError}
+            codeResult={codeResult}
+            onPrompt={handlePrompt}
           />
         </div>
-
         <div className="w-full">
-          <CodeSection generatedCode={generatedCode} />
+          <CodeSection
+            generatedCode={generatedCode}
+            autoRun={selectedMode === "agent"}
+            onError={setCodeError}
+            onResult={setCodeResult}
+          />
         </div>
 
         <div className="w-full">

@@ -70,7 +70,6 @@ const LLMCodeGenerator = ({
     onLlmStateChange("", false, llmReady);
   }, [llmReady, onLlmStateChange]);
 
-  // Ask mode logic (current implementation)
   const handleAskMode = useCallback(async () => {
     if (!prompt.trim() || !llmReady) return;
 
@@ -110,7 +109,6 @@ Format your response with the code in a code block, provide only the code as you
     }
   }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
 
-  // Agent mode logic: generate code and set it (auto-run handled by CodeSection)
   const handleAgentMode = useCallback(async () => {
     if (!prompt.trim() || !llmReady) return;
 
@@ -154,7 +152,6 @@ Format your response with the code in a code block, provide only the code as you
     }
   }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
 
-  // Unified handler based on mode
   const onGenerateFromPrompt = useCallback(async () => {
     if (selectedMode === "ask") {
       await handleAskMode();

@@ -1,10 +1,10 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { MessageCard, type MessageCardProps } from "./MessageCard";
 import { Button } from "../Button";
-import { useLLMEngine } from "@/hooks/useLLMEngine";
 import { extractCodeFromLLMResponse } from "@/utils";
 import { useCodeRunner } from "@/hooks/useCodeRunner";
 import { ChatMessagePlaceholder } from "./ChatMessagePlaceholder";
+import { useModelContext } from "@/context/ModelContext";
 
 // TODO this component should only take modelId and be displayed when it's ready to use
 // no initialization should take place here
@@ -13,6 +13,7 @@ export const Chat = () => {
   const [messages, setMessages] = useState<MessageCardProps[]>([]);
 
   const [generateCodeLoading, setGenerateCodeLoading] = useState(false);
+
   const {
     runPython,
     result: executeCodeResult,
@@ -21,16 +22,10 @@ export const Chat = () => {
   } = useCodeRunner();
 
   const {
-    initializeEngine,
     generateResponse,
-    loadingProgress,
-    isReady,
-    initializeError,
-  } = useLLMEngine();
-
-  useEffect(() => {
-    initializeEngine();
-  }, [initializeEngine]);
+    initProgress: loadingProgress,
+    readyToUse: isReady,
+  } = useModelContext();
 
   // get code response from model and start executing code
   const handlePromptSubmission = useCallback(
@@ -72,7 +67,7 @@ Format your response with the code in a code block, provide only the code as you
         setGenerateCodeLoading(false);
       }
     },
-    [generateResponse, runPython],
+    [generateResponse, runPython]
   );
 
   // create message with executed Python code result
@@ -147,12 +142,6 @@ Format your response with the code in a code block, provide only the code as you
           }
         />
       </div>
-
-      {initializeError && (
-        <div className="text-red-400 text-sm">
-          ⚠️ Engine error: {initializeError}
-        </div>
-      )}
     </div>
   );
 };

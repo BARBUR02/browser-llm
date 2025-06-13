@@ -1,6 +1,6 @@
+import { useLLMEngine } from "@/hooks/useLLMEngine";
 import React, {
   createContext,
-  useCallback,
   useContext,
   useState,
   type ReactNode,
@@ -9,16 +9,11 @@ import React, {
 interface ModelContextType {
   selectedModelId: string | undefined;
   changeSelectedModel: (id: string) => void;
-  llmResponse: string;
-  llmLoading: boolean;
-  llmReady: boolean;
-  generatedCode: string;
-  handleCodeGenerated: (code: string) => void;
-  handleLlmStateChange: (
-    response: string,
-    loading: boolean,
-    ready: boolean
-  ) => void;
+  generateResponse: (fullPrompt: string) => Promise<string>;
+  initProgress: number;
+  isInitLoading: boolean;
+  readyToUse: boolean;
+  initError: string | undefined;
 }
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
@@ -32,41 +27,28 @@ export const ModelProvider: React.FC<{ children: ReactNode }> = ({
 
   const changeSelectedModel = (id: string) => {
     setSelectedModelId(id);
-    setLlmResponse("");
-    setLlmLoading(false);
-    setLlmReady(false);
-    setGeneratedCode("");
+    initialize(id);
   };
 
-  const [llmResponse, setLlmResponse] = useState<string>("");
-  const [llmLoading, setLlmLoading] = useState(false);
-  const [llmReady, setLlmReady] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState<string>("");
-
-  const handleLlmStateChange = useCallback(
-    (response: string, loading: boolean, ready: boolean) => {
-      setLlmResponse(response);
-      setLlmLoading(loading);
-      setLlmReady(ready);
-    },
-    []
-  );
-
-  const handleCodeGenerated = useCallback((code: string) => {
-    setGeneratedCode(code);
-  }, []);
+  const {
+    isInitLoading,
+    initProgress,
+    initError,
+    generateResponse,
+    initialize,
+    readyToUse,
+  } = useLLMEngine();
 
   return (
     <ModelContext.Provider
       value={{
         selectedModelId,
         changeSelectedModel,
-        llmResponse,
-        llmLoading,
-        llmReady,
-        generatedCode,
-        handleCodeGenerated,
-        handleLlmStateChange,
+        generateResponse,
+        initProgress,
+        isInitLoading,
+        readyToUse,
+        initError,
       }}
     >
       {children}

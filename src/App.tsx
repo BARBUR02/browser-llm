@@ -46,6 +46,10 @@ interface LLMCodeGeneratorProps {
   selectedModelId: string | undefined;
   selectedMode: string;
   onModeChange: (mode: string) => void;
+  context: AgentContext;
+  buildPromptFromContext: (context: AgentContext) => string;
+  codeError?: string;
+  onPrompt: (prompt: string) => void;
 }
 
 const LLMCodeGenerator = ({
@@ -54,6 +58,10 @@ const LLMCodeGenerator = ({
   selectedModelId,
   selectedMode,
   onModeChange,
+  context,
+  buildPromptFromContext,
+  codeError,
+  onPrompt,
 }: LLMCodeGeneratorProps) => {
   const [prompt, setPrompt] = useState<string>("");
 
@@ -152,13 +160,17 @@ Format your response with the code in a code block, provide only the code as you
     }
   }, [prompt, llmReady, generateResponse, onCodeGenerated, onLlmStateChange]);
 
+  // When generating, add prompt to history
   const onGenerateFromPrompt = useCallback(async () => {
+    if (!prompt.trim() || !llmReady) return;
+    onPrompt(prompt.trim());
+
     if (selectedMode === "ask") {
       await handleAskMode();
     } else if (selectedMode === "agent") {
       await handleAgentMode();
     }
-  }, [selectedMode, handleAskMode, handleAgentMode]);
+  }, [prompt, llmReady, onPrompt, selectedMode, handleAskMode, handleAgentMode]);
 
   return (
     <div className="w-full bg-gray-800 text-white rounded-xl shadow-xl p-6 space-y-4">
@@ -261,6 +273,46 @@ const LLMResponseDisplay = ({
   );
 };
 
+// Context type
+type AgentContext = {
+  task: string;
+  history: { code: string; error?: string }[];
+};
+
+function buildPromptFromContext(
+  context: AgentContext,
+  maxHistoryAttempts: number = 3
+) {
+  let prompt = `Task: ${context.task}\n`;
+
+  const attempts = context.history.length;
+  const lastEntry = context.history[context.history.length - 1];
+
+  if (lastEntry) {
+    prompt += `\nCurrent code:\n${lastEntry.code}\n`;
+    prompt += `Error: ${lastEntry.error ?? "None"}\n`;
+  }
+
+  if (attempts > 1) {
+    const historyToShow = context.history.slice(
+      Math.max(0, attempts - maxHistoryAttempts - 1),
+      attempts - 1
+    );
+    if (historyToShow.length > 0) {
+      prompt += `\nRecent previous attempts:\n`;
+      historyToShow.forEach((h, i) => {
+        prompt += `Attempt ${attempts - historyToShow.length + i}:\nCode:\n${h.code}\nError:\n${h.error ?? "None"}\n`;
+      });
+    }
+  }
+
+  if (attempts > maxHistoryAttempts) {
+    prompt += `\nNote: Previous ${attempts} attempts failed.\n`;
+  }
+
+  return prompt;
+}
+
 function App() {
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
     undefined,
@@ -271,6 +323,8 @@ function App() {
   const [llmReady, setLlmReady] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string>("");
   const [selectedMode, setSelectedMode] = useState<string>("ask");
+  const [context, setContext] = useState<AgentContext>({ task: "", history: [] });
+  const [codeError, setCodeError] = useState<string | undefined>(undefined);
 
   const handleLlmStateChange = useCallback(
     (response: string, loading: boolean, ready: boolean) => {
@@ -281,9 +335,22 @@ function App() {
     [],
   );
 
+  // When code is generated, update context history with code and latest error
   const handleCodeGenerated = useCallback((code: string) => {
     setGeneratedCode(code);
-  }, []);
+    setContext((ctx) => ({
+      ...ctx,
+      history: [...ctx.history, { code, error: codeError }],
+    }));
+  }, [codeError]);
+
+  // Helper to handle prompt submission and update context
+  const handlePrompt = useCallback(
+    (prompt: string) => {
+      setContext({ task: prompt, history: [] });
+    },
+    []
+  );
 
   const handleModelSelect = (modelId: string) => {
     setSelectedModelId(modelId);
@@ -357,13 +424,17 @@ function App() {
             selectedModelId={selectedModelId}
             selectedMode={selectedMode}
             onModeChange={setSelectedMode}
+            context={context}
+            buildPromptFromContext={buildPromptFromContext}
+            codeError={codeError}
+            onPrompt={handlePrompt}
           />
         </div>
-
         <div className="w-full">
           <CodeSection
             generatedCode={generatedCode}
             autoRun={selectedMode === "agent"}
+            onError={setCodeError}
           />
         </div>
 

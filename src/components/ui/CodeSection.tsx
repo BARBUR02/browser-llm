@@ -37,9 +37,10 @@ for x, y in zip(a, b):
 interface CodeSectionProps {
   generatedCode?: string;
   autoRun?: boolean;
+  onError?: (err: string | undefined) => void;
 }
 
-export const CodeSection = ({ generatedCode, autoRun }: CodeSectionProps) => {
+export const CodeSection = ({ generatedCode, autoRun, onError }: CodeSectionProps) => {
   const [code, setCode] = useState<string | undefined>(undefined);
   const { runPython, result, loading, error } = useCodeRunner();
 
@@ -52,6 +53,10 @@ export const CodeSection = ({ generatedCode, autoRun }: CodeSectionProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generatedCode, autoRun]);
+
+  useEffect(() => {
+    if (onError) onError(error);
+  }, [error, onError]);
 
   const onRunClick = useCallback(() => {
     if (code) {

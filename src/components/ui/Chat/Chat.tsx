@@ -63,7 +63,7 @@ export const Chat = () => {
         setGenerateCodeLoading(false);
       }
     },
-    [generateResponse, runPython]
+    [generateResponse, runPython],
   );
 
   // create message with executed Python code result

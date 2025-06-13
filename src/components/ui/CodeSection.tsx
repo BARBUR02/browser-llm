@@ -38,16 +38,20 @@ interface CodeSectionProps {
   generatedCode?: string;
   autoRun?: boolean;
   onError?: (err: string | undefined) => void;
+  onResult?: (result: string | undefined) => void;
 }
 
-export const CodeSection = ({ generatedCode, autoRun, onError }: CodeSectionProps) => {
+export const CodeSection = ({ generatedCode, autoRun, onError, onResult }: CodeSectionProps) => {
   const [code, setCode] = useState<string | undefined>(undefined);
   const { runPython, result, loading, error } = useCodeRunner();
 
   useEffect(() => {
+    console.log("1")
     if (generatedCode) {
       setCode(generatedCode);
+      console.log("2")
       if (autoRun) {
+        console.log("3")
         runPython(generatedCode);
       }
     }
@@ -55,8 +59,13 @@ export const CodeSection = ({ generatedCode, autoRun, onError }: CodeSectionProp
   }, [generatedCode, autoRun]);
 
   useEffect(() => {
+    console.log("update error")
     if (onError) onError(error);
   }, [error, onError]);
+
+  useEffect(() => {
+    if (onResult) onResult(result);
+  }, [result, onResult]);
 
   const onRunClick = useCallback(() => {
     if (code) {
@@ -65,8 +74,11 @@ export const CodeSection = ({ generatedCode, autoRun, onError }: CodeSectionProp
   }, [code, runPython]);
 
   const outputString = useMemo(() => {
-    if (error) return error;
-    if (loading) return "Loading...";
+    if (error) console.error("Python error:", error);
+    if (error) return `Error: ${error}`;
+    if (loading) console.log("Python code is running...");
+    if (loading) return "Running code...";
+    console.log("Python code result:", result);
     return result ?? "Result will appear here...";
   }, [error, loading, result]);
 

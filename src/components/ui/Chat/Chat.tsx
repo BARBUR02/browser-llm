@@ -6,8 +6,8 @@ import { useCodeRunner } from "@/hooks/useCodeRunner";
 import { ChatMessagePlaceholder } from "./ChatMessagePlaceholder";
 import { useModelContext } from "@/context/ModelContext";
 
-// TODO this component should only take modelId and be displayed when it's ready to use
-// no initialization should take place here
+// TODO this component should only be displayed when it's ready to use
+// no engine initialization should take place here
 export const Chat = () => {
   const [input, setInput] = useState<string | undefined>(undefined);
   const [messages, setMessages] = useState<MessageCardProps[]>([]);
@@ -21,11 +21,7 @@ export const Chat = () => {
     error: executeCodeError,
   } = useCodeRunner();
 
-  const {
-    generateResponse,
-    initProgress: loadingProgress,
-    readyToUse: isReady,
-  } = useModelContext();
+  const { generateResponse } = useModelContext();
 
   // get code response from model and start executing code
   const handlePromptSubmission = useCallback(
@@ -67,7 +63,7 @@ Format your response with the code in a code block, provide only the code as you
         setGenerateCodeLoading(false);
       }
     },
-    [generateResponse, runPython],
+    [generateResponse, runPython]
   );
 
   // create message with executed Python code result
@@ -106,11 +102,10 @@ Format your response with the code in a code block, provide only the code as you
   };
 
   const buttonText = useMemo(() => {
-    if (!isReady) return `Loading model... (${loadingProgress}%)`;
     if (generateCodeLoading) return "Generating code...";
     if (executeCodeLoading) return "Executing code...";
     return "Generate";
-  }, [isReady, loadingProgress, generateCodeLoading, executeCodeLoading]);
+  }, [generateCodeLoading, executeCodeLoading]);
 
   return (
     <div className="w-full flex flex-col max-w-3xl bg-gray-800 text-white rounded-xl shadow-xl p-6 mb-8 h-[640px]">
@@ -128,18 +123,16 @@ Format your response with the code in a code block, provide only the code as you
           value={input ?? ""}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Enter your prompt and generate Python code..."
-          rows={4}
+          rows={3}
           className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-sm font-mono focus:ring-2 focus:ring-pink-500"
-          disabled={!isReady || generateCodeLoading || executeCodeLoading}
+          disabled={generateCodeLoading || executeCodeLoading}
         />
 
         <Button
           onPress={onSubmitPress}
           text={buttonText}
           type="primary"
-          disabled={
-            !input || !isReady || generateCodeLoading || executeCodeLoading
-          }
+          disabled={!input || generateCodeLoading || executeCodeLoading}
         />
       </div>
     </div>

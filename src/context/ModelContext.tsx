@@ -22,7 +22,7 @@ export const ModelProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
-    undefined
+    undefined,
   );
 
   const changeSelectedModel = (id: string) => {

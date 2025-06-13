@@ -19,7 +19,7 @@ export const ChooseModelCard = () => {
   } = useModelContext();
 
   const selectedModelDetails = AVAILABLE_MODELS.find(
-    (m) => m.id === selectedModelId
+    (m) => m.id === selectedModelId,
   );
 
   return (

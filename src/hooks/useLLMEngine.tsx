@@ -57,7 +57,7 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
           err instanceof Error ? err.message : "Failed to initialize engine";
 
         setInitError(
-          `${errorMessage}. Try refreshing the page or check console for details.`
+          `${errorMessage}. Try refreshing the page or check console for details.`,
         );
         setEngine(undefined);
         engineRef.current = null;
@@ -66,7 +66,7 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
         setInitProgress(100);
       }
     },
-    [initProgressCallback]
+    [initProgressCallback],
   );
 
   const generateResponse = useCallback(
@@ -86,11 +86,11 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
       } catch (err) {
         console.error("Failed to generate response:", err);
         throw new Error(
-          err instanceof Error ? err.message : "Failed to generate response"
+          err instanceof Error ? err.message : "Failed to generate response",
         );
       }
     },
-    [readyToUse]
+    [readyToUse],
   );
 
   useEffect(() => {

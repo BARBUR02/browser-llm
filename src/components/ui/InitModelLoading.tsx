@@ -1,7 +1,13 @@
-import { Progress } from "@radix-ui/react-progress";
-import { useEffect } from "react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
 
-interface InitModelLoadingPRops {
+interface InitModelLoadingProps {
   isLoading: boolean;
   progress: number;
 }
@@ -9,21 +15,30 @@ interface InitModelLoadingPRops {
 export const InitModelLoading = ({
   isLoading,
   progress,
-}: InitModelLoadingPRops) => {
-  useEffect(() => console.log(progress), [progress]);
+}: InitModelLoadingProps) => {
   return (
-    isLoading && (
-      <div className="w-full">
-        <div className="space-y-2">
-          <div className="text-center text-green-400">
-            Loading LLM... {progress}%
+    <AlertDialog open={isLoading}>
+      <AlertDialogContent className="bg-gray-800 border-gray-700">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-pink-400">
+            Initializing Model...
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-gray-400">
+            Please wait while we download and cache the model. This may take a
+            few moments and can be up to 5GB.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="w-full p-4 rounded-lg transition-all duration-300 ease-in-out">
+          <div className="space-y-3">
+            <div className="flex justify-end items-center">
+              <p className="text-sm font-mono text-gray-400">
+                {progress.toFixed(2)}%
+              </p>
+            </div>
+            <Progress value={progress} className="w-full" />
           </div>
-          <Progress
-            value={progress}
-            className="w-full [&>div]:bg-green-500 bg-gray-700"
-          />
         </div>
-      </div>
-    )
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };

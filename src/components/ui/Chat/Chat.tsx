@@ -1,6 +1,6 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { MessageCard, type MessageCardProps } from "./MessageCard";
-import { Button } from "../Button";
+import { CustomButton } from "../CustomButton";
 import { extractCodeFromLLMResponse, getFullPrompt } from "@/utils";
 import { useCodeRunner } from "@/hooks/useCodeRunner";
 import { ChatMessagePlaceholder } from "./ChatMessagePlaceholder";
@@ -134,7 +134,7 @@ export const Chat = () => {
           disabled={generateCodeLoading || executeCodeLoading}
         />
 
-        <Button
+        <CustomButton
           onPress={onSubmitPress}
           text={buttonText}
           type="primary"

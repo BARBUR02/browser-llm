@@ -13,6 +13,7 @@ interface ModelContextType {
   initProgress: number;
   isInitLoading: boolean;
   readyToUse: boolean;
+  isInitRun: boolean;
   initError: string | undefined;
 }
 
@@ -35,6 +36,7 @@ export const ModelProvider: React.FC<{ children: ReactNode }> = ({
     isInitLoading,
     initProgress,
     initError,
+    isInitRun,
     generateResponse,
     initialize,
     readyToUse,
@@ -49,6 +51,7 @@ export const ModelProvider: React.FC<{ children: ReactNode }> = ({
         initProgress,
         isInitLoading,
         initError,
+        isInitRun,
         readyToUse,
       }}
     >

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { useCodeRunner } from "../../hooks/useCodeRunner";
-import { Button } from "./Button";
+import { CustomButton } from "./CustomButton";
 
 const PRIMES_CODE = `import time
 
@@ -65,19 +65,19 @@ export const CodeSection = ({ generatedCode }: CodeSectionProps) => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-pink-500">Python Runner</h2>
         <div className="flex gap-3">
-          <Button
+          <CustomButton
             onPress={() => setCode(PRIMES_CODE)}
             text="Primes"
             disabled={loading}
             type="secondary"
           />
-          <Button
+          <CustomButton
             onPress={() => setCode(NUMPY_CODE)}
             text="Numpy"
             disabled={loading}
             type="secondary"
           />
-          <Button
+          <CustomButton
             onPress={onRunClick}
             text="Run"
             disabled={loading}

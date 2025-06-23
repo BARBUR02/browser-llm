@@ -23,15 +23,9 @@ export const ChooseModelCard = () => {
   );
 
   return (
-    <div className="w-full max-w-6xl space-y-6">
+    <div className="w-full max-w-xl space-y-6">
       <div className="w-full p-6 bg-gray-800 rounded-xl shadow-2xl space-y-6">
         <div className="space-y-2">
-          <label
-            htmlFor="model-select"
-            className="block text-sm font-medium text-gray-300"
-          >
-            Choose a Model:
-          </label>
           <Select value={selectedModelId} onValueChange={changeSelectedModel}>
             <SelectTrigger
               id="model-select"

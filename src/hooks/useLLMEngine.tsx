@@ -5,6 +5,7 @@ interface UseLLMEngineReturn {
   isInitLoading: boolean;
   initProgress: number;
   initError: string | undefined;
+  isInitRun: boolean;
   readyToUse: boolean;
   generateResponse: (prompt: string) => Promise<string>;
   initialize: (modelId: string) => Promise<void>;
@@ -19,6 +20,7 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
   const engineRef = useRef<MLCEngine | null>(null);
 
   const [isInitLoading, setIsInitLoading] = useState(false);
+  const [isInitRun, setIsInitRun] = useState(false);
   const [initProgress, setInitProgress] = useState(0);
   const [initError, setInitError] = useState<string | undefined>(undefined);
 
@@ -38,6 +40,7 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
 
   const initialize = useCallback(
     async (modelId: string) => {
+      setIsInitRun(true);
       setIsInitLoading(true);
       setInitError(undefined);
       setInitProgress(0);
@@ -105,6 +108,7 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
     isInitLoading,
     initProgress,
     initError,
+    isInitRun,
     readyToUse,
     generateResponse,
     initialize,

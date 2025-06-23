@@ -3,7 +3,7 @@ export function extractCodeFromLLMResponse(response: string): string {
     response.match(/```python\n([\s\S]*?)\n```/) ||
     response.match(/```\n([\s\S]*?)\n```/);
 
-  let code = "";
+  let code;
 
   if (codeMatch) {
     code = codeMatch[1].trim();
@@ -45,7 +45,7 @@ const standardLibs = new Set([
 ]);
 
 function generateMicropipInstallBlock(code: string): string {
-  const importRegex = /^\s*(?:import|from)\s+([\w\d_\.]+)/gm;
+  const importRegex = /^\s*(?:import|from)\s+([\w.]+)/gm;
   const packages = new Set<string>();
   let match: RegExpExecArray | null;
 
@@ -68,10 +68,8 @@ function generateMicropipInstallBlock(code: string): string {
 }
 
 export const getFullPrompt = (prompt: string) => {
-  const fullPrompt = `Generate Python code for the following request: "${prompt.trim()}".    
+  return `Generate Python code for the following request: "${prompt.trim()}".    
 Please provide clean, executable Python code with comments. Include any necessary imports. 
 If the request involves data processing, use basic Python libraries.
 Format your response with the code in a code block, provide only the code as your response.`;
-
-  return fullPrompt;
 };

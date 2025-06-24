@@ -9,6 +9,7 @@ interface UseLLMEngineReturn {
   readyToUse: boolean;
   generateResponse: (prompt: string) => Promise<string>;
   initialize: (modelId: string) => Promise<void>;
+  reset: () => void; // Add reset to the return type
 }
 
 type ProgressEvent = {
@@ -23,6 +24,14 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
   const [isInitRun, setIsInitRun] = useState(false);
   const [initProgress, setInitProgress] = useState(0);
   const [initError, setInitError] = useState<string | undefined>(undefined);
+
+  const reset = () => {
+    setIsInitRun(false);
+    setEngine(undefined);
+    engineRef.current = null;
+    setInitError(undefined);
+    setInitProgress(0);
+  };
 
   const readyToUse = useMemo(() => {
     if (!isInitLoading && !initError && engine) {
@@ -112,5 +121,6 @@ export const useLLMEngine = (): UseLLMEngineReturn => {
     readyToUse,
     generateResponse,
     initialize,
+    reset, // Add this line
   };
 };

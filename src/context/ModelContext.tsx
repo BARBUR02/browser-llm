@@ -15,6 +15,7 @@ interface ModelContextType {
   readyToUse: boolean;
   isInitRun: boolean;
   initError: string | undefined;
+  reset: () => void;
 }
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
@@ -40,7 +41,13 @@ export const ModelProvider: React.FC<{ children: ReactNode }> = ({
     generateResponse,
     initialize,
     readyToUse,
+    reset: resetEngine,
   } = useLLMEngine();
+
+  const reset = () => {
+    resetEngine();
+    setSelectedModelId(undefined);
+  };
 
   return (
     <ModelContext.Provider
@@ -53,6 +60,7 @@ export const ModelProvider: React.FC<{ children: ReactNode }> = ({
         initError,
         isInitRun,
         readyToUse,
+        reset,
       }}
     >
       {children}

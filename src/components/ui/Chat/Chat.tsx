@@ -5,6 +5,7 @@ import { extractCodeFromLLMResponse, getFullPrompt } from "@/utils";
 import { useCodeRunner } from "@/hooks/useCodeRunner";
 import { ChatMessagePlaceholder } from "./ChatMessagePlaceholder";
 import { useModelContext } from "@/context/ModelContext";
+import { CustomSelection } from "../CustomSelection";
 
 // TODO this component should only be displayed when it's ready to use
 // no engine initialization should take place here
@@ -107,6 +108,8 @@ export const Chat = () => {
     return "Generate";
   }, [generateCodeLoading, executeCodeLoading]);
 
+  const [mode, setMode] = useState<"ask" | "agent">("ask");
+
   return (
     <div className="w-full flex flex-col max-w-3xl bg-gray-800 text-white rounded-xl shadow-xl p-6 mb-8 h-[640px]">
       <div className="flex-1 space-y-4 overflow-y-auto pr-2 mb-4">
@@ -134,12 +137,15 @@ export const Chat = () => {
           disabled={generateCodeLoading || executeCodeLoading}
         />
 
-        <CustomButton
-          onPress={onSubmitPress}
-          text={buttonText}
-          type="primary"
-          disabled={!input || generateCodeLoading || executeCodeLoading}
-        />
+        <div className="flex items-center space-x-4">
+          <CustomButton
+            onPress={onSubmitPress}
+            text={buttonText}
+            type="primary"
+            disabled={!input || generateCodeLoading || executeCodeLoading}
+          />
+          <CustomSelection value={mode} onChange={setMode} />
+        </div>
       </div>
     </div>
   );

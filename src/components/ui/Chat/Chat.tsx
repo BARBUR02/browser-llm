@@ -73,7 +73,7 @@ export const Chat = () => {
 
         const chatMessage: MessageCardProps = {
           author: "chat",
-          type: "message",
+          type: "error",
           text: `⚠️ Error: ${errorText}`,
         };
 
@@ -144,10 +144,11 @@ export const Chat = () => {
           lastGeneratedCodeRef.current = undefined;
         }
       } else {
+        const errorText = executeCodeError ?? "Unknown error executing code";
         const message: MessageCardProps = {
           author: "chat",
-          type: "message",
-          text: executeCodeError ?? "something went wrong",
+          type: "error",
+          text: `⚠️ Error: ${errorText}`,
         };
         setMessages((prevItems) => [...prevItems, message]);
         setExecuteCodeError(undefined);

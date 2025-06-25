@@ -70,7 +70,7 @@ function generateMicropipInstallBlock(code: string): string {
 export const getFullPrompt = (
   prompt: string,
   mode: "ask" | "agent" = "ask",
-  context?: { code?: string; error?: string }
+  context?: { code?: string; error?: string },
 ) => {
   if (mode === "agent" && context) {
     return getAgentPrompt(prompt, context.code ?? "", context.error ?? "");
@@ -84,7 +84,7 @@ Format your response with the code in a code block, provide only the code as you
 export const getAgentPrompt = (
   userPrompt: string,
   code: string,
-  error: string
+  error: string,
 ) => {
   return `
 The previous attempt to solve the user's request failed with an error.

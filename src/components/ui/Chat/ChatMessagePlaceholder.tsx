@@ -12,11 +12,7 @@ export const ChatMessagePlaceholder = ({
   return (
     <>
       {loading && (
-        <MessageCard
-          author="chat"
-          type="animatedMessage"
-          text={text}
-        />
+        <MessageCard author="chat" type="animatedMessage" text={text} />
       )}
     </>
   );

@@ -36,16 +36,15 @@ export const Chat = () => {
 
   // get code response from model and start executing code
   const handlePromptSubmission = useCallback(
-    async (prompt: string, agentContext?: { code?: string; error?: string }): Promise<MessageCardProps> => {
+    async (
+      prompt: string,
+      agentContext?: { code?: string; error?: string },
+    ): Promise<MessageCardProps> => {
       try {
         setGenerateCodeLoading(true);
 
         // Use mode and context for prompt construction
-        const fullPrompt = getFullPrompt(
-          prompt.trim(),
-          mode,
-          agentContext
-        );
+        const fullPrompt = getFullPrompt(prompt.trim(), mode, agentContext);
         const responseText = await generateResponse(fullPrompt);
         const extracedCodeText = extractCodeFromLLMResponse(responseText);
 
@@ -116,7 +115,7 @@ export const Chat = () => {
       {
         code: lastGeneratedCodeRef.current,
         error: executeCodeError,
-      }
+      },
     );
     setMessages((prevItems) => [...prevItems, chatMessage]);
   }, [
@@ -157,7 +156,6 @@ export const Chat = () => {
         if (mode === "agent" && agentRetryCount < maxAgentRetries) {
           handleAgentRetry();
         } else if (mode === "agent" && agentRetryCount >= maxAgentRetries) {
-          
           const message: MessageCardProps = {
             author: "chat",
             type: "message",
@@ -213,12 +211,8 @@ export const Chat = () => {
           return <MessageCard key={index} {...item} />;
         })}
 
-        <ChatMessagePlaceholder
-          loading={generateCodeLoading}
-        />
-        <ChatMessagePlaceholder
-          loading={executeCodeLoading}
-        />
+        <ChatMessagePlaceholder loading={generateCodeLoading} />
+        <ChatMessagePlaceholder loading={executeCodeLoading} />
       </div>
 
       <div className="flex flex-col space-y-3">

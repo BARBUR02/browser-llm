@@ -3,10 +3,7 @@ type SelectionProps = {
   onChange: (val: "ask" | "agent") => void;
 };
 
-export const CustomSelection = ({
-  value,
-  onChange,
-}: SelectionProps) => (
+export const CustomSelection = ({ value, onChange }: SelectionProps) => (
   <div className="flex items-center space-x-4">
     <label className="flex items-center space-x-1 cursor-pointer">
       <input

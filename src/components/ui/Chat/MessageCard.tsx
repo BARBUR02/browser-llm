@@ -2,7 +2,11 @@ import { AnimatedDots } from "./AnimatedDots";
 
 export type MessageCardProps =
   | { author: "user"; text: string }
-  | { author: "chat"; type: "code" | "message" | "error" | "animatedMessage"; text: string };
+  | {
+      author: "chat";
+      type: "code" | "message" | "error" | "animatedMessage";
+      text: string;
+    };
 
 export const MessageCard = (props: MessageCardProps) => {
   const { author, text } = props;
@@ -11,7 +15,8 @@ export const MessageCard = (props: MessageCardProps) => {
   const isCode = author === "chat" && props.type === "code";
   const isError = author === "chat" && props.type === "error";
   const isMessage = author === "chat" && props.type === "message";
-  const isAnimatedMessage = author === "chat" && props.type === "animatedMessage";
+  const isAnimatedMessage =
+    author === "chat" && props.type === "animatedMessage";
 
   const containerClass = isUser
     ? "bg-green-500 text-white text-sm font-mono"

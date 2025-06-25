@@ -2,7 +2,7 @@ import { MessageCard } from "./MessageCard";
 
 type ChatMessagePlaceholderProps = {
   loading: boolean;
-  text: string;
+  text?: string;
 };
 
 export const ChatMessagePlaceholder = ({
@@ -10,6 +10,14 @@ export const ChatMessagePlaceholder = ({
   text,
 }: ChatMessagePlaceholderProps) => {
   return (
-    <>{loading && <MessageCard author="chat" type="message" text={text} />}</>
+    <>
+      {loading && (
+        <MessageCard
+          author="chat"
+          type="animatedMessage"
+          text={text || ""}
+        />
+      )}
+    </>
   );
 };

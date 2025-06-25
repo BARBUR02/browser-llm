@@ -215,11 +215,9 @@ export const Chat = () => {
 
         <ChatMessagePlaceholder
           loading={generateCodeLoading}
-          text={"Generating..."}
         />
         <ChatMessagePlaceholder
           loading={executeCodeLoading}
-          text={"Executing..."}
         />
       </div>
 

@@ -1,10 +1,11 @@
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { MessageCard, type MessageCardProps } from "./MessageCard";
 import { CustomButton } from "../CustomButton";
 import { extractCodeFromLLMResponse, getFullPrompt } from "@/utils";
 import { useCodeRunner } from "@/hooks/useCodeRunner";
 import { ChatMessagePlaceholder } from "./ChatMessagePlaceholder";
 import { useModelContext } from "@/context/ModelContext";
+import { CustomSelection } from "../CustomSelection";
 
 // TODO this component should only be displayed when it's ready to use
 // no engine initialization should take place here
@@ -19,22 +20,39 @@ export const Chat = () => {
     result: executeCodeResult,
     loading: executeCodeLoading,
     error: executeCodeError,
+    setResult: setExecuteCodeResult,
+    setError: setExecuteCodeError,
   } = useCodeRunner();
 
   const { generateResponse } = useModelContext();
 
+  const [mode, setMode] = useState<"ask" | "agent">("ask");
+  const [agentRetryCount, setAgentRetryCount] = useState(0);
+  const maxAgentRetries = 5;
+
+  // Keep track of last user prompt and last generated code for agent mode
+  const lastUserPromptRef = useRef<string | undefined>(undefined);
+  const lastGeneratedCodeRef = useRef<string | undefined>(undefined);
+
   // get code response from model and start executing code
   const handlePromptSubmission = useCallback(
-    async (prompt: string): Promise<MessageCardProps> => {
+    async (
+      prompt: string,
+      agentContext?: { code?: string; error?: string },
+    ): Promise<MessageCardProps> => {
       try {
-        // generate code through model
         setGenerateCodeLoading(true);
 
-        const fullPrompt = getFullPrompt(prompt.trim());
+        // Use mode and context for prompt construction
+        const fullPrompt = getFullPrompt(prompt.trim(), mode, agentContext);
         const responseText = await generateResponse(fullPrompt);
         const extracedCodeText = extractCodeFromLLMResponse(responseText);
 
         setGenerateCodeLoading(false);
+
+        // Save for agent mode
+        lastUserPromptRef.current = prompt;
+        lastGeneratedCodeRef.current = extracedCodeText;
 
         // run generated code
         runPython(extracedCodeText);
@@ -54,7 +72,7 @@ export const Chat = () => {
 
         const chatMessage: MessageCardProps = {
           author: "chat",
-          type: "message",
+          type: "error",
           text: `⚠️ Error: ${errorText}`,
         };
 
@@ -63,8 +81,49 @@ export const Chat = () => {
         setGenerateCodeLoading(false);
       }
     },
-    [generateResponse, runPython],
+    [generateResponse, runPython, mode],
   );
+
+  // Agent mode: construct a new prompt using history, code, and error
+  const handleAgentRetry = useCallback(async () => {
+    if (
+      agentRetryCount >= maxAgentRetries ||
+      !lastUserPromptRef.current ||
+      !lastGeneratedCodeRef.current ||
+      !executeCodeError
+    ) {
+      // Reset agent state if max retries reached or missing context
+      setAgentRetryCount(0);
+      lastUserPromptRef.current = undefined;
+      lastGeneratedCodeRef.current = undefined;
+      return;
+    }
+
+    // Add agent retry message
+    const agentMessage: MessageCardProps = {
+      author: "chat",
+      type: "message",
+      text: `Agent retry #${agentRetryCount + 1}: Trying to fix the error...`,
+    };
+    setMessages((prevItems) => [...prevItems, agentMessage]);
+
+    setAgentRetryCount((count) => count + 1);
+
+    // Submit the agent prompt using the new context
+    const chatMessage = await handlePromptSubmission(
+      lastUserPromptRef.current,
+      {
+        code: lastGeneratedCodeRef.current,
+        error: executeCodeError,
+      },
+    );
+    setMessages((prevItems) => [...prevItems, chatMessage]);
+  }, [
+    agentRetryCount,
+    maxAgentRetries,
+    executeCodeError,
+    handlePromptSubmission,
+  ]);
 
   // create message with executed Python code result
   useEffect(() => {
@@ -76,16 +135,51 @@ export const Chat = () => {
           text: executeCodeResult,
         };
         setMessages((prevItems) => [...prevItems, message]);
+        setExecuteCodeResult(undefined);
+
+        if (mode === "agent") {
+          setAgentRetryCount(0);
+          lastUserPromptRef.current = undefined;
+          lastGeneratedCodeRef.current = undefined;
+        }
       } else {
+        const errorText = executeCodeError ?? "Unknown error executing code";
         const message: MessageCardProps = {
           author: "chat",
-          type: "message",
-          text: executeCodeError ?? "something went wrong",
+          type: "error",
+          text: `⚠️ Error: ${errorText}`,
         };
         setMessages((prevItems) => [...prevItems, message]);
+        setExecuteCodeError(undefined);
+
+        // Agent mode
+        if (mode === "agent" && agentRetryCount < maxAgentRetries) {
+          handleAgentRetry();
+        } else if (mode === "agent" && agentRetryCount >= maxAgentRetries) {
+          const message: MessageCardProps = {
+            author: "chat",
+            type: "message",
+            text: `⚠️ Agent stopped after ${maxAgentRetries} retries.`,
+          };
+          setMessages((prevItems) => [...prevItems, message]);
+
+          setAgentRetryCount(0);
+          lastUserPromptRef.current = undefined;
+          lastGeneratedCodeRef.current = undefined;
+        }
       }
     }
-  }, [executeCodeLoading, executeCodeResult, executeCodeError]);
+  }, [
+    executeCodeLoading,
+    executeCodeResult,
+    executeCodeError,
+    mode,
+    agentRetryCount,
+    maxAgentRetries,
+    handleAgentRetry,
+    setExecuteCodeResult,
+    setExecuteCodeError,
+  ]);
 
   const onSubmitPress = async () => {
     if (!input) return;
@@ -96,6 +190,9 @@ export const Chat = () => {
     };
     setMessages((prevItems) => [...prevItems, userMessage]);
     setInput(undefined);
+
+    // Save last user prompt for agent mode
+    lastUserPromptRef.current = input;
 
     const chatMessage = await handlePromptSubmission(input);
     setMessages((prevItems) => [...prevItems, chatMessage]);
@@ -114,14 +211,8 @@ export const Chat = () => {
           return <MessageCard key={index} {...item} />;
         })}
 
-        <ChatMessagePlaceholder
-          loading={generateCodeLoading}
-          text={"Generating..."}
-        />
-        <ChatMessagePlaceholder
-          loading={executeCodeLoading}
-          text={"Executing..."}
-        />
+        <ChatMessagePlaceholder loading={generateCodeLoading} />
+        <ChatMessagePlaceholder loading={executeCodeLoading} />
       </div>
 
       <div className="flex flex-col space-y-3">
@@ -134,12 +225,15 @@ export const Chat = () => {
           disabled={generateCodeLoading || executeCodeLoading}
         />
 
-        <CustomButton
-          onPress={onSubmitPress}
-          text={buttonText}
-          type="primary"
-          disabled={!input || generateCodeLoading || executeCodeLoading}
-        />
+        <div className="flex items-center space-x-4">
+          <CustomButton
+            onPress={onSubmitPress}
+            text={buttonText}
+            type="primary"
+            disabled={!input || generateCodeLoading || executeCodeLoading}
+          />
+          <CustomSelection value={mode} onChange={setMode} />
+        </div>
       </div>
     </div>
   );

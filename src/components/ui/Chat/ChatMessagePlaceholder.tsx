@@ -7,7 +7,7 @@ type ChatMessagePlaceholderProps = {
 
 export const ChatMessagePlaceholder = ({
   loading,
-  text,
+  text = "",
 }: ChatMessagePlaceholderProps) => {
   return (
     <>
@@ -15,7 +15,7 @@ export const ChatMessagePlaceholder = ({
         <MessageCard
           author="chat"
           type="animatedMessage"
-          text={text || ""}
+          text={text}
         />
       )}
     </>
